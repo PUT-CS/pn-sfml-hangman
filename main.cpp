@@ -1,6 +1,7 @@
 #include <SFML/Config.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
@@ -15,19 +16,22 @@
 #include <cstddef>
 #include <cstdlib>
 #include <exception>
+#include <iostream>
+#include <locale>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 #include <sys/stat.h>
 #include <string.h>
+#include <fstream>
 #define NUM_OF_WORDS 610875
-// #define MAX_LETTERS 14
 
 const char* filename = "slowolista.txt";
 int mode = 0;
 int fails = 0;
 // 0 - menu
 // 1 - gra
+// 2 - end screen
 
 int getRandomNum(){
     int lower = 0;
@@ -57,6 +61,16 @@ char* getWord(){
     }
     fclose(wordlist);
     return current_line;
+}
+
+std::wstring fillWord(std::wstring word, std::wstring hidden_word, std::wstring letter){
+    for (int i=0; i<word.size(); i++) {
+        wchar_t spacecheck = hidden_word[i];
+        if (word[i] == letter[0] && spacecheck != L' ') {
+            hidden_word[i] = letter[0];
+        }
+    }
+    return hidden_word;
 }
 
 std::wstring getPolishLetter(sf::Uint32 code){
@@ -94,20 +108,101 @@ std::wstring getPolishLetter(sf::Uint32 code){
     }
 }
 
-int main(void){
-    srand(time(NULL));
-    char* word = getWord();
-    int length = strlen(word);
-    // char word_hidden[length];
-    std::wstring word_hidden;
-    printf("strlen: %zu\n", strlen(word));
-
-    for (int i=0; i<length; i++) {
-        word_hidden += '_';
-        if (i != length-1) {
-            word_hidden += ' ';
+std::wstring stringToWstring(std::string word){
+    static std::wstring output = L"";
+    for (int i=0; i<word.size(); i++) {
+        if (word[i]>0) {
+            // printf("%d\n", word[i]);
+            output.push_back(static_cast<wchar_t>(word[i]));
+        }
+        else {
+            if (word[i] == -60 && word[i+1] == -123) {
+                output.push_back(L'ą');
+                i++;
+            }
+            if (word[i] == -60 && word[i+1] == -121) {
+                output.push_back(L'ć');
+                i++;
+            }
+            if (word[i] == -60 && word[i+1] == -103) {
+                output.push_back(L'ę');
+                i++;
+            }
+            if (word[i] == -59 && word[i+1] == -126) {
+                output.push_back(L'ł');
+                i++;
+            }
+            if (word[i] == -59 && word[i+1] == -124) {
+                output.push_back(L'ń');
+                i++;
+            }
+            if (word[i] == -59 && word[i+1] == -101) {
+                output.push_back(L'ś');
+                i++;
+            }
+            if (word[i] == -61 && word[i+1] == -77) {
+                output.push_back(L'ó');
+                i++;
+            }
+            if (word[i] == -59 && word[i+1] == -70) {
+                output.push_back(L'ź');
+                i++;
+            }
+            if (word[i] == -59 && word[i+1] == -68) {
+                output.push_back(L'ż');
+                i++;
+            }
         }
     }
+    return output;
+}
+
+int playerHasWon(std::wstring word_hidden){
+    for (int i=0; i<word_hidden.size(); i++) {
+        if (word_hidden[i] == '_') {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+std::string getWordstr(){
+    std::ifstream wordlist;
+    wordlist.open(filename);
+    std::string line;
+    int line_num = getRandomNum();
+    for (int i=0; i<line_num; i++) {
+        wordlist>>line;
+    }
+    return line;
+}
+
+std::wstring hideWord(std::wstring word){
+    std::wstring word_hidden = L"";
+    for (int i=0; i<word.size(); i++) {
+        word_hidden+=L'_';
+        // if (i!=word.size()-1) {
+        //     word_hidden+=L' ';
+        // }
+    }
+    // word_hidden += L'|';
+    return word_hidden;
+}
+
+int main(void){
+    setlocale(LC_ALL, "pl_PL.UTF-8");
+    srand(time(NULL));
+
+    // char* word = getWord();
+    std::string dirty_word = getWordstr();
+    // dirty_word = "zażółć gęślą jaźń";
+    std::wstring word = stringToWstring(dirty_word);
+    std::wstring word_hidden;
+    word_hidden = hideWord(word);
+
+    std::wcout<<word_hidden<<std::endl;
+
+
 
     sf::RenderWindow window(sf::VideoMode(1000,1000), "Hangman");
     sf::Font font;
@@ -125,7 +220,8 @@ int main(void){
     title.setFont(font);
     title.setCharacterSize(80);
     title.setStyle(sf::Text::Bold);
-    title.setString(L"Hangman");
+    title.setString(word);
+    // title.setString(L"Hangman");
     sf::FloatRect titleRect = title.getLocalBounds();
     title.setOrigin(titleRect.width/2,titleRect.height/3);
     title.setPosition(sf::Vector2f(1000/2.0f,1000/7.0f));
@@ -195,7 +291,8 @@ int main(void){
     hidden_word.setFont(font);
     hidden_word.setCharacterSize(50);
     hidden_word.setStyle(sf::Text::Bold);
-    hidden_word.setString(word_hidden);
+    hidden_word.setString(L"Hidden word");
+    hidden_word.setLetterSpacing(3.0f);
     sf::FloatRect hidden_wordRect = hidden_word.getLocalBounds();
     hidden_word.setOrigin(hidden_wordRect.width/2,hidden_wordRect.height/2);
     hidden_word.setPosition(sf::Vector2f(1000/2.0f,1000/2.0f));
@@ -206,6 +303,8 @@ int main(void){
         textRect.top  + textRect.height/2.0f);
         text.setPosition(sf::Vector2f(SCRWIDTH/2.0f,SCRHEIGHT/2.0f))
     */
+    std::wstring letter;
+    int changes = 0;
 
     while (window.isOpen()) {
         while (window.pollEvent(event)){
@@ -213,14 +312,28 @@ int main(void){
             if (event.type == sf::Event::Closed){
                 window.close();
             }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+                mode = 1;
+            }
             if(event.type == sf::Event::TextEntered){
-                if (event.text.unicode > 128) {
-                    std::wstring string = getPolishLetter(event.text.unicode);
-                    load_save.setString(string);
-                    mode=1;
-                }
-                else {
-                    load_save.setString(event.text.unicode);
+                if (mode == 1) {
+                    if (event.text.unicode > 128) {
+                        // handle polish chars
+                        letter = getPolishLetter(event.text.unicode);
+                        word_hidden = fillWord(word, word_hidden, letter);
+                        hidden_word.setString(word_hidden);
+                    }
+                    else {
+                        // handle ASCII chars
+                        letter = event.text.unicode;
+                        std::wstring wletter = L"";
+                        wletter += letter;
+                        word_hidden = fillWord(word, word_hidden, wletter);
+                        hidden_word.setString(word_hidden);
+                    }
+                    if (playerHasWon(word_hidden)) {
+                        mode = 2;
+                    }
                 }
             }
             window.clear();
@@ -234,6 +347,16 @@ int main(void){
             }
             if (mode == 1) {
                 window.draw(hidden_word);
+            }
+            if (mode == 2) {
+                title.setFont(font);
+                // title.setCharacterSize(80);
+                // title.setStyle(sf::Text::Bold);
+                title.setString(L"You have won!");
+                sf::FloatRect titleRect = title.getLocalBounds();
+                title.setOrigin(titleRect.width/2,titleRect.height/2);
+                title.setPosition(sf::Vector2f(1000/2.0f,1000/3.0f));
+                window.draw(title);
             }
             window.draw(authors);
             window.draw(year);
