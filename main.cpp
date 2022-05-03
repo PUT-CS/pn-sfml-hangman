@@ -3,11 +3,15 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Font.hpp>
+#include <SFML/Graphics/Image.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Shape.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Text.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <SFML/System/String.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Keyboard.hpp>
@@ -26,9 +30,9 @@
 #include <fstream>
 #define NUM_OF_WORDS 610875
 
-const char* filename = "slowolista.txt";
+const char* filename = "slowa.txt";
 int mode = 0;
-int fails = 0;
+int fails = -1;
 // 0 - menu
 // 1 - gra
 // 2 - end screen
@@ -103,7 +107,7 @@ std::wstring getPolishLetter(sf::Uint32 code){
             return L"ż";
             break;
         default:
-            return L"Error";
+            return L"?";
             break;
     }
 }
@@ -166,6 +170,15 @@ int playerHasWon(std::wstring word_hidden){
     return 1;
 }
 
+int isLetterInWstring(std::wstring word, std::wstring letter){
+    for (int i=0; i<word.size(); i++) {
+        if (word[i] == letter[0]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 std::string getWordstr(){
     std::ifstream wordlist;
     wordlist.open(filename);
@@ -177,15 +190,22 @@ std::string getWordstr(){
     return line;
 }
 
+
+
+// int findWstr(std::wstring wstr, std::wstring letter){
+//     for (int i=0; i<wstr.size(); i++) {
+//         if (wstr[i] == letter[0]) {
+//             return 1;
+//         }
+//     }
+//     return 0;
+// }
+
 std::wstring hideWord(std::wstring word){
     std::wstring word_hidden = L"";
     for (int i=0; i<word.size(); i++) {
         word_hidden+=L'_';
-        // if (i!=word.size()-1) {
-        //     word_hidden+=L' ';
-        // }
     }
-    // word_hidden += L'|';
     return word_hidden;
 }
 
@@ -193,15 +213,15 @@ int main(void){
     setlocale(LC_ALL, "pl_PL.UTF-8");
     srand(time(NULL));
 
-    // char* word = getWord();
-    std::string dirty_word = getWordstr();
-    // dirty_word = "zażółć gęślą jaźń";
-    std::wstring word = stringToWstring(dirty_word);
+    char* dirty_word = getWord();
+    std::string wordstr(dirty_word, dirty_word + strlen(dirty_word)-1);
+    // std::string dirty_word = getWordstr();
+    std::wstring word = stringToWstring(wordstr);
+    // std::wstring word = stringToWstring(dirty_word);
     std::wstring word_hidden;
     word_hidden = hideWord(word);
 
     std::wcout<<word_hidden<<std::endl;
-
 
 
     sf::RenderWindow window(sf::VideoMode(1000,1000), "Hangman");
@@ -210,6 +230,16 @@ int main(void){
         puts("COULDN'T LOAD FONT");
         exit(1);
     }
+
+    //image display
+    //
+    // sf::Image hangman_image;
+    // hangman_image.loadFromFile("assets/states/state10.png");
+    // sf::Texture texture;
+    // texture.loadFromImage(hangman_image);
+    // texture.setSmooth(true);
+    // sf::Sprite sprite;
+    // sprite.setTexture(texture);
 
     sf::Event event;
     sf::Color DarkGreen(16,130,0);
@@ -291,7 +321,8 @@ int main(void){
     hidden_word.setFont(font);
     hidden_word.setCharacterSize(50);
     hidden_word.setStyle(sf::Text::Bold);
-    hidden_word.setString(L"Hidden word");
+    hidden_word.setString(word_hidden);
+    // hidden_word.setString(L"Hidden word");
     hidden_word.setLetterSpacing(3.0f);
     sf::FloatRect hidden_wordRect = hidden_word.getLocalBounds();
     hidden_word.setOrigin(hidden_wordRect.width/2,hidden_wordRect.height/2);
@@ -304,7 +335,7 @@ int main(void){
         text.setPosition(sf::Vector2f(SCRWIDTH/2.0f,SCRHEIGHT/2.0f))
     */
     std::wstring letter;
-    int changes = 0;
+    std::wstring used;
 
     while (window.isOpen()) {
         while (window.pollEvent(event)){
@@ -312,28 +343,39 @@ int main(void){
             if (event.type == sf::Event::Closed){
                 window.close();
             }
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+            if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
                 mode = 1;
             }
             if(event.type == sf::Event::TextEntered){
                 if (mode == 1) {
                     if (event.text.unicode > 128) {
-                        // handle polish chars
                         letter = getPolishLetter(event.text.unicode);
                         word_hidden = fillWord(word, word_hidden, letter);
                         hidden_word.setString(word_hidden);
+                        if (!isLetterInWstring(used,letter)) {
+                            if (!isLetterInWstring(used,letter)) {
+                                used+=letter;
+                                fails++;
+                            }
+                        }
+                        authors.setString(used);
                     }
                     else {
-                        // handle ASCII chars
                         letter = event.text.unicode;
-                        std::wstring wletter = L"";
-                        wletter += letter;
-                        word_hidden = fillWord(word, word_hidden, wletter);
+                        word_hidden = fillWord(word, word_hidden, letter);
                         hidden_word.setString(word_hidden);
+                        if (!isLetterInWstring(word,letter)) {
+                            if (!isLetterInWstring(used,letter)) {
+                                used+=letter;
+                                fails++;
+                            }
+                        }
+                        authors.setString(used);
                     }
                     if (playerHasWon(word_hidden)) {
                         mode = 2;
                     }
+                    year.setString(std::to_wstring(fails));
                 }
             }
             window.clear();
@@ -350,8 +392,6 @@ int main(void){
             }
             if (mode == 2) {
                 title.setFont(font);
-                // title.setCharacterSize(80);
-                // title.setStyle(sf::Text::Bold);
                 title.setString(L"You have won!");
                 sf::FloatRect titleRect = title.getLocalBounds();
                 title.setOrigin(titleRect.width/2,titleRect.height/2);
