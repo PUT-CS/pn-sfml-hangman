@@ -301,39 +301,23 @@ int main(void){
     end_game_button.setOrigin(end_game_buttonRect.width/2,end_game_buttonRect.height/2);
 
     sf::Text hidden_word;
-    hidden_word.setFont(font);
-    hidden_word.setCharacterSize(50);
-    hidden_word.setStyle(sf::Text::Bold);
+    hidden_word = applyStyle(hidden_word, font, 50);
     hidden_word.setString(word_hidden);
     hidden_word.setLetterSpacing(3.0f);
-    sf::FloatRect hidden_wordRect = hidden_word.getLocalBounds();
-    hidden_word.setOrigin(hidden_wordRect.width/2,hidden_wordRect.height/2);
-    hidden_word.setPosition(sf::Vector2f(1000/2.0f,1000/2.0f));
+    hidden_word = center(hidden_word, 2.0f, 2.0f);
 
     std::wstring used;
     sf::Text used_letters;
-    used_letters.setFont(font);
-    used_letters.setCharacterSize(50);
-    used_letters.setStyle(sf::Text::Bold);
+    used_letters = applyStyle(used_letters, font, 50);
     used_letters.setString(used);
     used_letters.setLetterSpacing(3.0f);
-    sf::FloatRect used_lettersRect = hidden_word.getLocalBounds();
-    used_letters.setOrigin(used_lettersRect.width/2,used_lettersRect.height/2);
-    used_letters.setPosition(sf::Vector2f(1000/2.0f,1000-100));
-
-    /*
-        sf::FloatRect textRect = text.getLocalBounds();
-        text.setOrigin(textRect.left + textRect.width/2.0f,
-        textRect.top  + textRect.height/2.0f);
-        text.setPosition(sf::Vector2f(SCRWIDTH/2.0f,SCRHEIGHT/2.0f))
-    */
+    used_letters = center(used_letters, 2.0f, 1.10f);
 
     std::wstring letter;
     std::wstring humanword;
 
     while (window.isOpen()) {
         while (window.waitEvent(event)){
-        // while (window.pollEvent(event)){
 
             if (event.type == sf::Event::Closed){
                 window.close();
