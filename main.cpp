@@ -17,11 +17,15 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/VideoMode.hpp>
+#include <SFML/Window/Window.hpp>
+#include <clocale>
 #include <cstddef>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
 #include <locale>
+#include <ostream>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -29,6 +33,9 @@
 #include <string.h>
 #include <fstream>
 #define NUM_OF_WORDS 610875
+#define MAX_LETTERS 14
+#define SCREEN_X 1000
+#define SCREEN_Y 1000
 
 const char* filename = "slowa.txt";
 int mode = 0;
@@ -190,17 +197,6 @@ std::string getWordstr(){
     return line;
 }
 
-
-
-// int findWstr(std::wstring wstr, std::wstring letter){
-//     for (int i=0; i<wstr.size(); i++) {
-//         if (wstr[i] == letter[0]) {
-//             return 1;
-//         }
-//     }
-//     return 0;
-// }
-
 std::wstring hideWord(std::wstring word){
     std::wstring word_hidden = L"";
     for (int i=0; i<word.size(); i++) {
@@ -209,20 +205,31 @@ std::wstring hideWord(std::wstring word){
     return word_hidden;
 }
 
+sf::Text center(sf::Text object, float x, float y){
+    sf::FloatRect objectRect = object.getLocalBounds();
+    object.setOrigin(objectRect.width/2,objectRect.height/2);
+    object.setPosition(sf::Vector2f(SCREEN_X/x,SCREEN_Y/y));
+    return object;
+}
+
+sf::Text applyStyle(sf::Text object, sf::Font &font, int size){
+    object.setFont(font);
+    object.setCharacterSize(size);
+    object.setStyle(sf::Text::Bold);
+    return object;
+}
+
 int main(void){
     setlocale(LC_ALL, "pl_PL.UTF-8");
     srand(time(NULL));
 
     char* dirty_word = getWord();
     std::string wordstr(dirty_word, dirty_word + strlen(dirty_word)-1);
-    // std::string dirty_word = getWordstr();
     std::wstring word = stringToWstring(wordstr);
-    // std::wstring word = stringToWstring(dirty_word);
     std::wstring word_hidden;
     word_hidden = hideWord(word);
 
-    std::wcout<<word_hidden<<std::endl;
-
+    // std::wcout<<word_hidden<<std::endl;
 
     sf::RenderWindow window(sf::VideoMode(1000,1000), "Hangman");
     sf::Font font;
@@ -247,59 +254,35 @@ int main(void){
     sf::Color Gray(90,90,90);
 
     sf::Text title;
-    title.setFont(font);
-    title.setCharacterSize(80);
-    title.setStyle(sf::Text::Bold);
+    title = applyStyle(title, font, 80);
     title.setString(word);
     // title.setString(L"Hangman");
-    sf::FloatRect titleRect = title.getLocalBounds();
-    title.setOrigin(titleRect.width/2,titleRect.height/3);
-    title.setPosition(sf::Vector2f(1000/2.0f,1000/7.0f));
+    title = center(title, 2.0f, 7.0f);
 
     sf::Text main_menu;
-    main_menu.setFont(font);
-    main_menu.setCharacterSize(56);
-    main_menu.setStyle(sf::Text::Bold);
+    main_menu = applyStyle(main_menu, font, 56);
     main_menu.setString(L"Main Menu");
-    sf::FloatRect main_menuRect = main_menu.getLocalBounds();
-    main_menu.setOrigin(main_menuRect.width/2,main_menuRect.height/3);
-    main_menu.setPosition(sf::Vector2f(1000/2.0f,1000/2.8f));
+    main_menu = center(main_menu, 2.0f, 2.8f);
 
     sf::Text authors;
-    authors.setFont(font);
-    authors.setCharacterSize(20);
-    authors.setStyle(sf::Text::Bold);
+    authors = applyStyle(authors, font, 20);
     authors.setString(L"Michał Miłek & Sebastian Nowak");
-    sf::FloatRect authorsRect = authors.getLocalBounds();
-    authors.setOrigin(authorsRect.width/2,authorsRect.height/3);
-    authors.setPosition(sf::Vector2f(1000/2.0f,1000/1.1f));
+    authors = center(authors, 2.0f, 1.1f);
 
     sf::Text year;
-    year.setFont(font);
-    year.setCharacterSize(30);
-    year.setStyle(sf::Text::Bold);
+    year = applyStyle(year, font, 30);
     year.setString("2022");
-    sf::FloatRect yearRect = year.getLocalBounds();
-    year.setOrigin(yearRect.width/2,yearRect.height/2);
-    year.setPosition(sf::Vector2f(1000/2.0f,1000/1.05f));
+    year = center(year, 2.0f, 1.05f);
 
     sf::Text new_game;
-    new_game.setFont(font);
-    new_game.setCharacterSize(30);
-    new_game.setStyle(sf::Text::Bold);
+    new_game = applyStyle(new_game, font, 30);
     new_game.setString("New Game");
-    sf::FloatRect new_gameRect = new_game.getLocalBounds();
-    new_game.setPosition(sf::Vector2f(985/2.0f,1000/2.03f));
-    new_game.setOrigin(new_gameRect.width/2,new_gameRect.height/2);
+    new_game = center(new_game, 2.0f, 2.03f);
 
     sf::Text load_save;
-    load_save.setFont(font);
-    load_save.setCharacterSize(30);
-    load_save.setStyle(sf::Text::Bold);
+    load_save = applyStyle(load_save, font, 30);
     load_save.setString("Load Save");
-    sf::FloatRect load_saveRect = load_save.getLocalBounds();
-    load_save.setPosition(sf::Vector2f(985/2.0f,1000/1.52f));
-    load_save.setOrigin(load_saveRect.width/2, load_saveRect.height/2);
+    load_save = center(load_save, 2.0f, 1.52f);
 
     sf::RectangleShape begin_game_button;
     begin_game_button.setSize(sf::Vector2f(555, 100));
@@ -322,11 +305,21 @@ int main(void){
     hidden_word.setCharacterSize(50);
     hidden_word.setStyle(sf::Text::Bold);
     hidden_word.setString(word_hidden);
-    // hidden_word.setString(L"Hidden word");
     hidden_word.setLetterSpacing(3.0f);
     sf::FloatRect hidden_wordRect = hidden_word.getLocalBounds();
     hidden_word.setOrigin(hidden_wordRect.width/2,hidden_wordRect.height/2);
     hidden_word.setPosition(sf::Vector2f(1000/2.0f,1000/2.0f));
+
+    std::wstring used;
+    sf::Text used_letters;
+    used_letters.setFont(font);
+    used_letters.setCharacterSize(50);
+    used_letters.setStyle(sf::Text::Bold);
+    used_letters.setString(used);
+    used_letters.setLetterSpacing(3.0f);
+    sf::FloatRect used_lettersRect = hidden_word.getLocalBounds();
+    used_letters.setOrigin(used_lettersRect.width/2,used_lettersRect.height/2);
+    used_letters.setPosition(sf::Vector2f(1000/2.0f,1000-100));
 
     /*
         sf::FloatRect textRect = text.getLocalBounds();
@@ -334,25 +327,51 @@ int main(void){
         textRect.top  + textRect.height/2.0f);
         text.setPosition(sf::Vector2f(SCRWIDTH/2.0f,SCRHEIGHT/2.0f))
     */
+
     std::wstring letter;
-    std::wstring used;
+    std::wstring humanword;
 
     while (window.isOpen()) {
-        while (window.pollEvent(event)){
+        while (window.waitEvent(event)){
+        // while (window.pollEvent(event)){
 
             if (event.type == sf::Event::Closed){
                 window.close();
             }
+
             if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-                mode = 1;
+                // mode = 1; actual
+                mode = 3;
+                // start the game
             }
+
             if(event.type == sf::Event::TextEntered){
-                if (mode == 1) {
+
+                if (mode == 3){ //user word input
+                    if (event.text.unicode != '\r') {
+                        if (event.text.unicode == '\b' && humanword.size() > 0) {
+                            humanword.erase(humanword.size()-1, 1);
+                            authors.setString(humanword);
+                        }
+                        else if (humanword.size() <= MAX_LETTERS  && event.text.unicode != ' ') {
+                            humanword.push_back(static_cast<wchar_t>(event.text.unicode));
+                            authors.setString(humanword);
+                        }
+                    }
+                    else {
+                        word = humanword;
+                        word_hidden = hideWord(word);
+                        mode = 1;
+                    }
+                }
+
+                if (mode == 1) { //game loop
+
                     if (event.text.unicode > 128) {
                         letter = getPolishLetter(event.text.unicode);
                         word_hidden = fillWord(word, word_hidden, letter);
                         hidden_word.setString(word_hidden);
-                        if (!isLetterInWstring(used,letter)) {
+                        if (!isLetterInWstring(word,letter)) {
                             if (!isLetterInWstring(used,letter)) {
                                 used+=letter;
                                 fails++;
@@ -380,22 +399,24 @@ int main(void){
             }
             window.clear();
             window.draw(title);
-            if (mode == 0) {
+            if (mode == 0) { //menu
                 window.draw(main_menu);
                 window.draw(begin_game_button);
                 window.draw(end_game_button);
                 window.draw(new_game);
                 window.draw(load_save);
             }
-            if (mode == 1) {
+            if (mode == 1) { //game
                 window.draw(hidden_word);
+                window.draw(used_letters);
             }
-            if (mode == 2) {
+            if (mode == 2) { //win
                 title.setFont(font);
                 title.setString(L"You have won!");
-                sf::FloatRect titleRect = title.getLocalBounds();
-                title.setOrigin(titleRect.width/2,titleRect.height/2);
-                title.setPosition(sf::Vector2f(1000/2.0f,1000/3.0f));
+                title = center(title, 2.0f, 3.0f);
+                // titleRect = title.getLocalBounds();
+                // title.setOrigin(titleRect.width/2,titleRect.height/2);
+                // title.setPosition(sf::Vector2f(1000/2.0f,1000/3.0f));
                 window.draw(title);
             }
             window.draw(authors);
