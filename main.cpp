@@ -34,10 +34,11 @@
 #include <fstream>
 #define NUM_OF_WORDS 610875
 #define MAX_LETTERS 14
+#define MIN_LETTERS 5
 #define SCREEN_X 1000
 #define SCREEN_Y 1000
 
-const char* filename = "slowa.txt";
+const char* filename = "assets/wordlists/slowa.txt";
 int mode = 0;
 int fails = -1;
 // 0 - menu
@@ -333,16 +334,16 @@ int main(void){
 
                 if (mode == 3){ //user word input
                     if (event.text.unicode != '\r') {
-                        if (event.text.unicode == '\b' && humanword.size() > 0) {
+                        if (event.text.unicode == '\b' && humanword.size() > 0) { //backspace
                             humanword.erase(humanword.size()-1, 1);
                             authors.setString(humanword);
                         }
-                        else if (humanword.size() <= MAX_LETTERS  && event.text.unicode != ' ') {
+                        else if (humanword.size() <= MAX_LETTERS  && event.text.unicode != ' ') { //normal letters
                             humanword.push_back(static_cast<wchar_t>(event.text.unicode));
                             authors.setString(humanword);
                         }
                     }
-                    else {
+                    else if (humanword.size() >= MIN_LETTERS){
                         word = humanword;
                         word_hidden = hideWord(word);
                         mode = 1;
@@ -398,9 +399,6 @@ int main(void){
                 title.setFont(font);
                 title.setString(L"You have won!");
                 title = center(title, 2.0f, 3.0f);
-                // titleRect = title.getLocalBounds();
-                // title.setOrigin(titleRect.width/2,titleRect.height/2);
-                // title.setPosition(sf::Vector2f(1000/2.0f,1000/3.0f));
                 window.draw(title);
             }
             window.draw(authors);
