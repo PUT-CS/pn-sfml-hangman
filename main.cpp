@@ -18,6 +18,7 @@
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/VideoMode.hpp>
 #include <SFML/Window/Window.hpp>
+#include <bits/types/FILE.h>
 #include <clocale>
 #include <cstddef>
 #include <cstdlib>
@@ -32,18 +33,27 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <fstream>
+// #define NUM_OF_WORDS 9
 #define NUM_OF_WORDS 610875
-#define MAX_LETTERS 14
+#define MAX_LETTERS 16
 #define MIN_LETTERS 5
 #define SCREEN_X 1000
 #define SCREEN_Y 1000
 
-const char* filename = "assets/wordlists/slowa.txt";
+const char* filename = "assets/wordlists/easy.txt";
 int mode = 0;
 int fails = -1;
 // 0 - menu
 // 1 - gra
 // 2 - end screen
+// 3 - human input
+// 4 - load save
+
+typedef struct Save{
+    std::wstring struct_word_saved;
+    std::wstring struct_word_hidden_saved;
+    std::wstring struct_used_saved;
+}Save;
 
 int getRandomNum(){
     int lower = 0;
@@ -55,7 +65,6 @@ int getRandomNum(){
 char* getWord(){
     FILE *wordlist;
     char* word;
-    char* line = NULL;
     int line_num = getRandomNum();
 
     struct stat sb;
@@ -67,57 +76,14 @@ char* getWord(){
         printf("Unable to read the %s\n", filename);
         exit(1);
     }
-
-    for(int i=0; i<=line_num; i++){
-        fscanf(wordlist, "%[^\n] ", current_line);
+    // fgets(line, sizeof line, stdin)
+    for(int i=0; i<line_num; i++){
+        fscanf(wordlist, "%[^\n]", current_line);
+        // fscanf(wordlist, "%[^\n]", current_line);
+        // fgets(current_line, sizeof current_line, wordlist);
     }
     fclose(wordlist);
     return current_line;
-}
-
-std::wstring fillWord(std::wstring word, std::wstring hidden_word, std::wstring letter){
-    for (int i=0; i<word.size(); i++) {
-        wchar_t spacecheck = hidden_word[i];
-        if (word[i] == letter[0] && spacecheck != L' ') {
-            hidden_word[i] = letter[0];
-        }
-    }
-    return hidden_word;
-}
-
-std::wstring getPolishLetter(sf::Uint32 code){
-    switch (code) {
-        case 0x105:
-            return L"ą";
-            break;
-        case 0x107:
-            return L"ć";
-            break;
-        case 0x119:
-            return L"ę";
-            break;
-        case 0x142:
-            return L"ł";
-            break;
-        case 0x144:
-            return L"ń";
-            break;
-        case 0x0F3:
-            return L"ó";
-            break;
-        case 0x015B:
-            return L"ś";
-            break;
-        case 0x017A:
-            return L"ź";
-            break;
-        case 0x017C:
-            return L"ż";
-            break;
-        default:
-            return L"?";
-            break;
-    }
 }
 
 std::wstring stringToWstring(std::string word){
@@ -168,6 +134,123 @@ std::wstring stringToWstring(std::string word){
     }
     return output;
 }
+
+// void loadSave(std::wstring *word, std::wstring *word_hidden, std::wstring *used){
+//     FILE *savefile;
+//     char *saved_word;
+//     char* saved_word_hidden;
+//     char* saved_used;
+
+//     savefile = fopen("saves/save1.hangman", "r");
+//     struct stat sb;
+//     stat(filename, &sb);
+//     char *current_line = (char*)malloc(sb.st_size);
+
+//     fscanf(savefile, "%[^\n] ", current_line);
+//     std::string saved_word_str(current_line, current_line + strlen(current_line)-1);
+//     std::wstring saved_word_wstr = stringToWstring(saved_word_str);
+//     word = &saved_word_wstr;
+
+//     fscanf(savefile, "%[^\n] ", current_line);
+//     std::string saved_word_hidden_str(current_line, current_line + strlen(current_line)-1);
+//     std::wstring saved_word_hidden_wstr = stringToWstring(saved_word_hidden_str);
+//     word_hidden = &saved_word_hidden_wstr;
+
+//     fscanf(savefile, "%[^\n] ", current_line);
+//     std::string saved_used_str(current_line, current_line + strlen(current_line)-1);
+//     std::wstring saved_used_wstr = stringToWstring(saved_used_str);
+//     used = &saved_used_wstr;
+//     // strcpy(saved_used, current_line);
+
+//     fclose(savefile);
+// }
+
+Save loadSave_struct(){
+    FILE *savefile;
+    char *saved_word;
+    char* saved_word_hidden;
+    char* saved_used;
+    Save save;
+
+    savefile = fopen("saves/save1.hangman", "r");
+    struct stat sb;
+    stat(filename, &sb);
+    char *current_line = (char*)malloc(sb.st_size);
+
+    // fscanf(savefile, "%[^\n] ", current_line);
+    // std::string saved_word_str(current_line, current_line + strlen(current_line)-1);
+    // std::wstring saved_word_wstr = stringToWstring(saved_word_str);
+    // save.struct_word_saved = saved_word_wstr;
+    // free(current_line);
+
+    // current_line = (char*)malloc(sb.st_size);
+    // fscanf(savefile, "%[^\n] ", current_line);
+    // std::string saved_word_hidden_str(current_line, current_line + strlen(current_line)-1);
+    // std::wstring saved_word_hidden_wstr = stringToWstring(saved_word_hidden_str);
+    // save.struct_word_hidden_saved = saved_word_hidden_wstr;
+    // free(current_line);
+
+    // current_line = (char*)malloc(sb.st_size);
+    // fscanf(savefile, "%[^\n] ", current_line);
+    // std::string saved_used_str(current_line, current_line + strlen(current_line)-1);
+    // std::wstring saved_used_wstr = stringToWstring(saved_used_str);
+    // save.struct_used_saved = saved_used_wstr;
+
+    save.struct_word_saved = L"pies";
+    save.struct_word_hidden_saved = L"p_e_";
+    save.struct_used_saved = L"abc";
+
+    free(current_line);
+    fclose(savefile);
+    return save;
+}
+
+std::wstring fillWord(std::wstring word, std::wstring hidden_word, std::wstring letter){
+    for (int i=0; i<word.size(); i++) {
+        wchar_t spacecheck = hidden_word[i];
+        if (word[i] == letter[0] && spacecheck != L' ') {
+            hidden_word[i] = letter[0];
+        }
+    }
+    return hidden_word;
+}
+
+std::wstring getPolishLetter(sf::Uint32 code){
+    switch (code) {
+        case 0x105:
+            return L"ą";
+            break;
+        case 0x107:
+            return L"ć";
+            break;
+        case 0x119:
+            return L"ę";
+            break;
+        case 0x142:
+            return L"ł";
+            break;
+        case 0x144:
+            return L"ń";
+            break;
+        case 0x0F3:
+            return L"ó";
+            break;
+        case 0x015B:
+            return L"ś";
+            break;
+        case 0x017A:
+            return L"ź";
+            break;
+        case 0x017C:
+            return L"ż";
+            break;
+        default:
+            return L"?";
+            break;
+    }
+}
+
+
 
 int playerHasWon(std::wstring word_hidden){
     for (int i=0; i<word_hidden.size(); i++) {
@@ -234,7 +317,7 @@ int main(void){
 
     sf::RenderWindow window(sf::VideoMode(1000,1000), "Hangman");
     sf::Font font;
-    if(!font.loadFromFile("fonts/NotoSansMono-Regular.ttf")){
+    if(!font.loadFromFile("assets/fonts/NotoSansMono-Regular.ttf")){
         puts("COULDN'T LOAD FONT");
         exit(1);
     }
@@ -308,14 +391,16 @@ int main(void){
     hidden_word = center(hidden_word, 2.0f, 2.0f);
 
     std::wstring used;
+    std::wstring letter;
+    std::wstring humanword;
+    Save save;
+
+
     sf::Text used_letters;
     used_letters = applyStyle(used_letters, font, 50);
     used_letters.setString(used);
     used_letters.setLetterSpacing(3.0f);
     used_letters = center(used_letters, 2.0f, 1.10f);
-
-    std::wstring letter;
-    std::wstring humanword;
 
     while (window.isOpen()) {
         while (window.waitEvent(event)){
@@ -324,10 +409,20 @@ int main(void){
                 window.close();
             }
 
+            if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::SemiColon)) {
+                mode = 1; // start the game
+            }
+
+            if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::Comma)) {
+                mode = 2; //auto win
+            }
+
+            if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::Slash)) {
+                mode = 3; // get human input for the word
+            }
+
             if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-                // mode = 1; actual
-                mode = 3;
-                // start the game
+                mode = 4; // load save
             }
 
             if(event.type == sf::Event::TextEntered){
@@ -348,6 +443,18 @@ int main(void){
                         word_hidden = hideWord(word);
                         mode = 1;
                     }
+                }
+
+                if (mode == 4) {
+                    save = loadSave_struct();
+                    word = save.struct_word_saved;
+                    word_hidden = save.struct_word_hidden_saved;
+                    used = save.struct_used_saved;
+
+                    title.setString("Ladowanie sejwa");
+                    hidden_word.setString(word_hidden);
+                    used_letters.setString(used);
+                    mode = 1;
                 }
 
                 if (mode == 1) { //game loop
