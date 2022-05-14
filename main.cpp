@@ -1,49 +1,21 @@
-#include <SFML/Config.hpp>
 #include <SFML/Graphics.hpp>
-#include <SFML/Graphics/Color.hpp>
-#include <SFML/Graphics/Drawable.hpp>
-#include <SFML/Graphics/Font.hpp>
-#include <SFML/Graphics/Image.hpp>
-#include <SFML/Graphics/PrimitiveType.hpp>
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Graphics/RenderTexture.hpp>
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/Graphics/Shape.hpp>
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/Text.hpp>
-#include <SFML/Graphics/Texture.hpp>
-#include <SFML/System/String.hpp>
-#include <SFML/Window/Event.hpp>
-#include <SFML/Window/Keyboard.hpp>
-#include <SFML/Window/Mouse.hpp>
-#include <SFML/Window/VideoMode.hpp>
-#include <SFML/Window/Window.hpp>
-#include <bits/types/FILE.h>
-#include <clocale>
-#include <cstddef>
-#include <cstdlib>
-#include <exception>
 #include <iostream>
-#include <locale>
-#include <ostream>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
 #include <sys/stat.h>
 #include <string.h>
 #include <fstream>
-#include <iostream>
-#include <bits/stdc++.h>
+#include "src/logic.hpp"
+#include "src/stringops.hpp"
+#include "src/sfmlops.hpp"
+
 // #define NUM_OF_WORDS 9
 #define NUM_OF_WORDS 610875
 #define MAX_LETTERS 16
 #define MIN_LETTERS 5
-#define SCREEN_X 1000
-#define SCREEN_Y 1000
 
 const char* filename = "assets/wordlists/slowa.txt";
-const char* savefile = "saves/save2.hangman";
+const char* savefile = "saves/save10.hangman";
 
 int mode = 0;
 int fails = -1;
@@ -84,60 +56,10 @@ char* getWord(){
     return current_line;
 }
 
-std::wstring stringToWstring(std::string word){
-    std::wstring output = L"";
-    for (int i=0; i<word.size(); i++) {
-        if (word[i]>0) {
-            // printf("%d\n", word[i]);
-            output.push_back(static_cast<wchar_t>(word[i]));
-        }
-        else {
-            if (word[i] == -60 && word[i+1] == -123) {
-                output.push_back(L'ą');
-                i++;
-            }
-            if (word[i] == -60 && word[i+1] == -121) {
-                output.push_back(L'ć');
-                i++;
-            }
-            if (word[i] == -60 && word[i+1] == -103) {
-                output.push_back(L'ę');
-                i++;
-            }
-            if (word[i] == -59 && word[i+1] == -126) {
-                output.push_back(L'ł');
-                i++;
-            }
-            if (word[i] == -59 && word[i+1] == -124) {
-                output.push_back(L'ń');
-                i++;
-            }
-            if (word[i] == -59 && word[i+1] == -101) {
-                output.push_back(L'ś');
-                i++;
-            }
-            if (word[i] == -61 && word[i+1] == -77) {
-                output.push_back(L'ó');
-                i++;
-            }
-            if (word[i] == -59 && word[i+1] == -70) {
-                output.push_back(L'ź');
-                i++;
-            }
-            if (word[i] == -59 && word[i+1] == -68) {
-                output.push_back(L'ż');
-                i++;
-            }
-        }
-    }
-    return output;
-}
-
 std::wstring getWord2(int line_num){
-// char* getWord2(int line_num){
+
     FILE *wordlist;
     char* word;
-
     struct stat sb;
     stat(savefile, &sb);
     char *current_line = (char*)malloc(sb.st_size);
@@ -147,11 +69,8 @@ std::wstring getWord2(int line_num){
         printf("Unable to read the %s\n", savefile);
         exit(1);
     }
-    // fgets(line, sizeof line, stdin)
     for(int i=0; i<line_num; i++){
         fscanf(wordlist, "%[^\n] ", current_line);
-        // fscanf(wordlist, "%[^\n]", current_line);
-        // fgets(current_line, sizeof current_line, wordlist);
     }
     fclose(wordlist);
 
@@ -161,142 +80,31 @@ std::wstring getWord2(int line_num){
     return wstr;
 }
 
-std::wstring fillWord(std::wstring word, std::wstring hidden_word, std::wstring letter){
-    for (int i=0; i<word.size(); i++) {
-        wchar_t spacecheck = hidden_word[i];
-        if (word[i] == letter[0] && spacecheck != L' ') {
-            hidden_word[i] = letter[0];
-        }
-    }
-    return hidden_word;
-}
+void saveGame(std::wstring word, std::wstring word_hidden, std::wstring used, std::string savename){
 
-std::wstring getPolishLetter(sf::Uint32 code){
-    switch (code) {
-        case 0x105:
-            return L"ą";
-            break;
-        case 0x107:
-            return L"ć";
-            break;
-        case 0x119:
-            return L"ę";
-            break;
-        case 0x142:
-            return L"ł";
-            break;
-        case 0x144:
-            return L"ń";
-            break;
-        case 0x0F3:
-            return L"ó";
-            break;
-        case 0x015B:
-            return L"ś";
-            break;
-        case 0x017A:
-            return L"ź";
-            break;
-        case 0x017C:
-            return L"ż";
-            break;
-        default:
-            return L"?";
-            break;
-    }
-}
+    std::string path = "saves/";
+    savename = "save10.hangman";
+    path += savename;
 
-int playerHasWon(std::wstring word_hidden){
-    for (int i=0; i<word_hidden.size(); i++) {
-        if (word_hidden[i] == '_') {
-            return 0;
-        }
-    }
-    return 1;
-}
+    std::string rmcommand = "rm saves/";
+    rmcommand += savename;
+    system(rmcommand.c_str());
+    std::string touchcommand = "touch ";
+    touchcommand += path;
+    system(touchcommand.c_str());
 
-int isLetterInWstring(std::wstring word, std::wstring letter){
-    for (int i=0; i<word.size(); i++) {
-        if (word[i] == letter[0]) {
-            return 1;
-        }
-    }
-    return 0;
-}
+    std::wofstream newsave(path, std::ios::binary);
+    newsave << word << '\n';
+    newsave << word_hidden << '\n';
+    newsave << used << '\n';
+    newsave.close();
 
-// std::string getWordstr(){
-//     std::ifstream wordlist;
-//     wordlist.open(filename);
-//     std::string line;
-//     int line_num = getRandomNum();
-//     for (int i=0; i<line_num; i++) {
-//         wordlist>>line;
-//     }
-//     return line;
-// }
-
-std::wstring hideWord(std::wstring word){
-    std::wstring word_hidden = L"";
-    for (int i=0; i<word.size(); i++) {
-        word_hidden+=L'_';
-    }
-    return word_hidden;
-}
-
-sf::Text center(sf::Text object, float x, float y){
-    sf::FloatRect objectRect = object.getLocalBounds();
-    object.setOrigin(objectRect.width/2,objectRect.height/2);
-    object.setPosition(sf::Vector2f(SCREEN_X/x,SCREEN_Y/y));
-    return object;
-}
-
-sf::Text applyStyle(sf::Text object, sf::Font &font, int size){
-    object.setFont(font);
-    object.setCharacterSize(size);
-    object.setStyle(sf::Text::Bold);
-    return object;
-}
-
-std::string getLine(int line_num, const std::string filename){
-
-	std::string line;
-	std::ifstream file(filename);
-    for(int i=0; i<line_num; i++){
-		// file >> line;
-        std::getline(file, line);
-    }
-	// file.close();
-    return line;
-}
-
-std::wstring getwLine(int line_num, const std::string filename){
-
-	std::wstring line;
-	std::wifstream file(filename, std::ios::binary);
-    std::wstring content((std::istreambuf_iterator<wchar_t>(file)),
-    {});
-    for(int i=0; i<line_num; i++){
-		// file >> line;
-        // std::getline(file, line);
-    }
-	// file.close();
-    std::wcout<<line<<std::endl;
-    return line;
-}
-
-std::wstring loadSaveUtil(int line_num, std::string filename){
-    std::wifstream file(filename);
-    std::wstring line;
-    for (int i=0; i<line_num; i++) {
-        file>>line;
-    }
-    return line;
+    std::string convertcommand = "./util/unix2dos ";
+    convertcommand += path;
+    system(convertcommand.c_str());
 }
 
 int main(void){
-    // std::ios_base::sync_with_stdio(false);
-    // std::wcout.imbue( std::locale( "pl_PL.UTF-8" ) );
-    // setlocale(LC_ALL, "pl_PL.UTF-8");
     srand(time(NULL));
 
  //tu bylo wczytywanie
@@ -439,6 +247,10 @@ int main(void){
                 }
 
                 if (mode == 4) { // load save
+
+                    //// if (used.size() > 0) {
+                        // saveGame(word, word_hidden, used, "save10.hangman");
+                    //// }
 
                     word = getWord2(1);
                     word_hidden = getWord2(2);
