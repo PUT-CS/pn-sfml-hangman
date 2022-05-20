@@ -93,3 +93,17 @@ std::wstring stringToWstring(std::string word){
     }
     return output;
 }
+
+int isLetterAllowed(sf::Uint32 code){
+    if (code >= 97 && code <= 122) { // onyl lowercase english letters
+        return 1;
+    }
+    else if (code == 0x105 || code == 0x107 || code == 0x119 ||
+             code == 0x142 || code == 0x0F3 || code == 0x15B ||
+             code == 0x17A || code == 0x17C){ // pnly polish chars
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
