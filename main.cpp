@@ -114,6 +114,7 @@ void saveGame(std::wstring word, std::wstring word_hidden, std::wstring used, st
     std::string convertcommand = "./util/unix2dos ";
     convertcommand += path;
     system(convertcommand.c_str());
+    newsave.close();
 }
 
 int isAlNum(sf::Uint32 code){
@@ -123,11 +124,15 @@ int isAlNum(sf::Uint32 code){
 int main(void){
     srand(time(NULL));
 
-    char* dirty_word = getRandomWord();
-    std::string wordstr(dirty_word, dirty_word + strlen(dirty_word)-1);
-    std::wstring word = stringToWstring(wordstr);
+    // char* dirty_word = getRandomWord();
+    // std::string wordstr(dirty_word, dirty_word + strlen(dirty_word)-1);
+    // std::wstring word = stringToWstring(wordstr);
+    // std::wstring word_hidden;
+    // word_hidden = hideWord(word);
+    char* dirty_word;
+    // std::string wordstr(dirty_word, dirty_word + strlen(dirty_word)-1);
+    std::wstring word;
     std::wstring word_hidden;
-    word_hidden = hideWord(word);
 
     sf::RenderWindow window(sf::VideoMode(1000,1000), "Hangman");
     sf::Font font;
@@ -143,7 +148,8 @@ int main(void){
 
     sf::Text title;
     title = applyStyle(title, font, 80);
-    title.setString(word);
+    // title.setString(word);
+    title.setString(L"");
     title.setString(L"Hangman");
     title = center(title, 2.0f, 7.0f);
 
@@ -190,7 +196,8 @@ int main(void){
 
     sf::Text hidden_word;
     hidden_word = applyStyle(hidden_word, font, 50);
-    hidden_word.setString(word_hidden);
+    // hidden_word.setString(word_hidden);
+    hidden_word.setString(L"");
     hidden_word.setLetterSpacing(3.0f);
     hidden_word = center(hidden_word, 2.0f, 2.0f);
 
@@ -236,8 +243,13 @@ int main(void){
     SFhuman_input.setString(L"");
     SFhuman_input = center(SFhuman_input, 2.0f, 1.8f);
 
+    // sf::Text SFnewsave_name;
+    // SFnewsave_name = applyStyle(SFnewsave_name, font, 25);
+    // SFnewsave_name.setString(newsave_name);
+    // SFnewsave_name = center(SFnewsave_name, 2.0f, 1.8f);
+
     sf::Text SFkeybinds;
-    SFkeybinds = applyStyle(SFkeybinds, font, 20);
+    SFkeybinds = applyStyle(SFkeybinds, font, 15);
     SFkeybinds.setString("New game (CPU): CTRL+N\nNew game (HUM): CTRL+H\nLoad Game:      CTRL+L\nQuit:           CTRL+Q ");
     SFkeybinds = center(SFkeybinds, 5.0f, 1.1f);
 
@@ -251,19 +263,24 @@ int main(void){
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
                 window.close();
             }
-            // if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::Comma)) {
-            //     mode = 2; //auto win
-            // }
-            if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {
                 mode = 3; // get human input for the word
             }
 
-            if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::N)) {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::N)) { // restart
+                dirty_word = getRandomWord();
+                std::string wordstr(dirty_word, dirty_word + strlen(dirty_word)-1);
+                word = stringToWstring(wordstr);
+                word_hidden = hideWord(word);
+                hidden_word.setString(word_hidden);
+                hidden_word = center(hidden_word, 2.0f, 2.0f);
+                fails = 0;
+                used.clear();
                 mode = 1; // start the game
             }
 
-            if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
-            // if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::SemiColon)) {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
                 mode = 4; // load save
             }
 
@@ -294,20 +311,20 @@ int main(void){
                     }
                 }
 
-                if (mode == 5) {
-                    // title.setString(L"Saving!");
+                if (mode == 5) { // saving
                     if (event.text.unicode == '\b' && newsave_name.size() > 0) { //backspace
                         newsave_name.erase(newsave_name.size()-1, 1); // delete the last character
-                        SFused.setString(newsave_name);
+                        SFhuman_input.setString(newsave_name);
                     }
                     else if (isAlNum(event.text.unicode)) {
                         newsave_name.push_back(static_cast<char>(event.text.unicode));
-                        SFused.setString(newsave_name);
+                        SFhuman_input.setString(newsave_name);
                     }
                     else if (event.text.unicode == '\r'){
                         saveGame(word, word_hidden, used, newsave_name);
                         mode = 1;
                     }
+                    SFhuman_input = center(SFhuman_input, 2.0f, 1.8f);
                 }
 
                 if (mode == 4) { // load save
@@ -361,6 +378,9 @@ int main(void){
                     if (!isLetterInWstring(word,letter) && !isLetterInWstring(used,letter) && isLetterAllowed(event.text.unicode)) {
                             used+=letter;
                             fails++;
+                            if (fails == 10) { // lose condition
+                                mode = 6;
+                            }
                     }
 
                     SFused.setString(used);
@@ -412,17 +432,51 @@ int main(void){
 
             }
             if (mode == 3) { // human input
+                SFinput_prompt = center(SFinput_prompt, 2.0f, 2.0f);
                 window.draw(SFinput_prompt);
                 window.draw(SFhuman_input);
                 // window.draw(SFused);
             }
             if (mode == 4) { // loading a save
+                title.setString("Load a game");
+                title = center(title, 2.0f, 7.0f);
+                SFinput_prompt.setString("Input the name of a save to load");
+                SFinput_prompt = center(SFinput_prompt, 2.0f, 2.0f);
                 window.draw(SFused);
+                window.draw(title);
+                window.draw(SFinput_prompt);
             }
             if (mode == 5) { // saving the game
-                window.draw(SFused);
+                title.setString("Save the game");
+                title = center(title, 2.0f, 7.0f);
+                SFinput_prompt.setString("Input the name of a new save");
+                SFinput_prompt = center(SFinput_prompt, 2.0f, 2.0f);
+                window.draw(SFinput_prompt);
+                window.draw(title);
+                window.draw(SFhuman_input);
             }
-            window.draw(title);
+            if (mode == 6) {
+                title.setString("You've lost!");
+                title = center(title, 2.0f, 7.0f);
+                window.draw(title);
+
+                SFword_reveal.setString(L"The word was: "+word);
+                SFword_reveal = center(SFword_reveal, 2.0f, 3.6f);
+                window.draw(SFword_reveal);
+
+                SFendcorrect_guesses.setString("Correct guesses: " + std::to_string((int)correct_guesses));
+                SFendcorrect_guesses = center(SFendcorrect_guesses, 2.0f, 2.6f);
+                window.draw(SFendcorrect_guesses);
+
+                SFendfails.setString("Incorrect guesses: " + std::to_string((int)fails));
+                SFendfails = center(SFendfails, 2.0f, 2.3f);
+                window.draw(SFendfails);
+
+                SFcorrect_incorrect_ratio.setString("Ratio: " + std::to_string((int)(correct_guesses/(correct_guesses+fails)*100))+"%");
+                SFcorrect_incorrect_ratio = center(SFcorrect_incorrect_ratio, 2.0f, 1.9f);
+                window.draw(SFcorrect_incorrect_ratio);
+            }
+            // window.draw(title);
             window.draw(SFkeybinds);
             window.display();
         }
