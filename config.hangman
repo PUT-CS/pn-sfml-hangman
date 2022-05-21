@@ -1,0 +1,13 @@
+Background-R: 0
+Background-G: 0
+Background-B: 0
+Font-R: 255
+Font-G: 255
+Font-B: 255
+Keybind-Prompts: true
+Font-File: NotoSansMono-Regular.ttf
+Window-Name: Hangman
+Wordlist-Name: slowa.txt
+Music: true
+
+

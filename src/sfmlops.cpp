@@ -1,3 +1,4 @@
+#include <SFML/Graphics/Color.hpp>
 #include <iostream>
 #include "sfmlops.hpp"
 #define SCREEN_X 1000
@@ -14,5 +15,6 @@ sf::Text applyStyle(sf::Text object, sf::Font &font, int size){
     object.setFont(font);
     object.setCharacterSize(size);
     object.setStyle(sf::Text::Bold);
+    object.setFillColor(sf::Color::White);
     return object;
 }

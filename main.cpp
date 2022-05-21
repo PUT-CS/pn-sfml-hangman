@@ -1,9 +1,11 @@
 #include <SFML/Config.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Clock.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <sys/stat.h>
 #include <string.h>
 #include <fstream>
@@ -20,12 +22,13 @@ const char* filename = "assets/wordlists/slowa.txt";
 // const char* savefile = "saves/save10.hangman";
 
 int mode = 0;
-int fails = 0;
 // 0 - menu
 // 1 - gra
-// 2 - end screen
+// 2 - win screen
 // 3 - human input
 // 4 - load save
+// 5 - saving
+// 6 - lose screen
 
 int getRandomNum(){
     int lower = 0;
@@ -78,13 +81,17 @@ std::wstring loadSaveLine(int line_num, std::string savefile_name){
     std::string str(current_line, current_line + strlen(current_line)-1);
     std::wstring wstr = stringToWstring(str);
 
+    if (wstr == L".") { // a symbol for empty used string
+        return L"";
+    }
+
     return wstr;
 }
 
 void saveGame(std::wstring word, std::wstring word_hidden, std::wstring used, std::string savename){
 
     std::string path = "saves/";
-    savename = "save10.hangman";
+    // savename = "save10.hangman";
     path += savename;
 
     std::string rmcommand = "rm saves/";
@@ -93,6 +100,10 @@ void saveGame(std::wstring word, std::wstring word_hidden, std::wstring used, st
     std::string touchcommand = "touch ";
     touchcommand += path;
     system(touchcommand.c_str());
+
+    if (used.size() == 0) { // the player has no fails - fill it with a period.
+        used = L".";
+    }
 
     std::wofstream newsave(path, std::ios::binary);
     newsave << word << '\n';
@@ -105,17 +116,18 @@ void saveGame(std::wstring word, std::wstring word_hidden, std::wstring used, st
     system(convertcommand.c_str());
 }
 
+int isAlNum(sf::Uint32 code){
+    return (code >=32 && code <= 126) || isLetterAllowed(code)? 1 : 0 ;
+}
+
 int main(void){
     srand(time(NULL));
 
-    //tu bylo wczytywanie
     char* dirty_word = getRandomWord();
     std::string wordstr(dirty_word, dirty_word + strlen(dirty_word)-1);
     std::wstring word = stringToWstring(wordstr);
     std::wstring word_hidden;
     word_hidden = hideWord(word);
-
-    // std::wcout<<word_hidden<<std::endl;
 
     sf::RenderWindow window(sf::VideoMode(1000,1000), "Hangman");
     sf::Font font;
@@ -123,16 +135,6 @@ int main(void){
         puts("COULDN'T LOAD FONT");
         exit(1);
     }
-
-    //image display
-    //
-    // sf::Image hangman_image;
-    // hangman_image.loadFromFile("assets/states/state10.png");
-    // sf::Texture texture;
-    // texture.loadFromImage(hangman_image);
-    // texture.setSmooth(true);
-    // sf::Sprite sprite;
-    // sprite.setTexture(texture);
 
     sf::Event event;
     sf::Color DarkGreen(16,130,0);
@@ -142,7 +144,7 @@ int main(void){
     sf::Text title;
     title = applyStyle(title, font, 80);
     title.setString(word);
-    // title.setString(L"Hangman");
+    title.setString(L"Hangman");
     title = center(title, 2.0f, 7.0f);
 
     sf::Text main_menu;
@@ -196,13 +198,48 @@ int main(void){
     std::wstring letter;
     std::wstring humanword=L"";
     std::string savefile_name="";
-
+    std::string newsave_name="";
+    float fails = 0;
+    float correct_guesses = 0;
 
     sf::Text used_letters;
     used_letters = applyStyle(used_letters, font, 50);
     used_letters.setString(used);
     used_letters.setLetterSpacing(3.0f);
     used_letters = center(used_letters, 2.0f, 1.10f);
+
+    sf::Text SFendfails;
+    SFendfails = applyStyle(SFendfails, font, 40);
+    SFendfails.setString(std::to_string(fails));
+    SFendfails = center(SFendfails, 2.0f, 1.3f);
+
+    sf::Text SFcorrect_incorrect_ratio;
+    SFcorrect_incorrect_ratio = applyStyle(SFcorrect_incorrect_ratio, font, 40);
+    SFcorrect_incorrect_ratio = center(SFcorrect_incorrect_ratio, 2.0f, 1.1f);
+
+    sf::Text SFendcorrect_guesses;
+    SFendcorrect_guesses = applyStyle(SFendcorrect_guesses, font, 40);
+    SFendcorrect_guesses.setString(std::to_string(correct_guesses));
+    SFendcorrect_guesses = center(SFendcorrect_guesses, 2.0f, 1.2f);
+
+    sf::Text SFword_reveal;
+    SFword_reveal = applyStyle(SFword_reveal, font, 40);
+    SFword_reveal = center(SFword_reveal, 2.0f, 1.7f);
+
+    sf::Text SFinput_prompt;
+    SFinput_prompt = applyStyle(SFinput_prompt, font, 30);
+    SFinput_prompt.setString("Input the word for the other player to guess");
+    SFinput_prompt = center(SFinput_prompt, 2.0f, 2.0f);
+
+    sf::Text SFhuman_input;
+    SFhuman_input = applyStyle(SFhuman_input, font, 25);
+    SFhuman_input.setString(L"");
+    SFhuman_input = center(SFhuman_input, 2.0f, 1.8f);
+
+    sf::Text SFkeybinds;
+    SFkeybinds = applyStyle(SFkeybinds, font, 20);
+    SFkeybinds.setString("New game (CPU): CTRL+N\nNew game (HUM): CTRL+H\nLoad Game:      CTRL+L\nQuit:           CTRL+Q ");
+    SFkeybinds = center(SFkeybinds, 5.0f, 1.1f);
 
     while (window.isOpen()) {
         while (window.waitEvent(event)){
@@ -211,17 +248,18 @@ int main(void){
                 window.close();
             }
 
-
-            if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::Comma)) {
-                mode = 2; //auto win
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
+                window.close();
             }
-
-            if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::Slash)) {
+            // if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::Comma)) {
+            //     mode = 2; //auto win
+            // }
+            if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {
                 mode = 3; // get human input for the word
             }
 
-            if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-                mode = 1; // load save
+            if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::N)) {
+                mode = 1; // start the game
             }
 
             if (mode == 0 && sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
@@ -229,9 +267,9 @@ int main(void){
                 mode = 4; // load save
             }
 
-            // if (used.size() > 0) {
-                // saveGame(word, word_hidden, used, "save10.hangman");
-            // }
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+                mode = 5;
+            }
 
             if(event.type == sf::Event::TextEntered){
 
@@ -240,17 +278,34 @@ int main(void){
 
                         if (event.text.unicode == '\b' && humanword.size() > 0) { //backspace
                             humanword.erase(humanword.size()-1, 1); // delete the last character
-                            SFused.setString(humanword);
+                            SFhuman_input.setString(humanword);
                         }
                         else if (humanword.size() <= MAX_LETTERS  && event.text.unicode != ' ' && event.text.unicode != '\b' && isLetterAllowed(event.text.unicode)) { //normal letters
                             humanword.push_back(static_cast<wchar_t>(event.text.unicode));
-                            SFused.setString(humanword);
+                            SFhuman_input.setString(humanword);
                         }
+                        SFhuman_input = center(SFhuman_input, 2.0f, 1.8f);
                     }
                     else if (humanword.size() >= MIN_LETTERS){
                         word = humanword;
                         title.setString(word);
                         word_hidden = hideWord(word);
+                        mode = 1;
+                    }
+                }
+
+                if (mode == 5) {
+                    // title.setString(L"Saving!");
+                    if (event.text.unicode == '\b' && newsave_name.size() > 0) { //backspace
+                        newsave_name.erase(newsave_name.size()-1, 1); // delete the last character
+                        SFused.setString(newsave_name);
+                    }
+                    else if (isAlNum(event.text.unicode)) {
+                        newsave_name.push_back(static_cast<char>(event.text.unicode));
+                        SFused.setString(newsave_name);
+                    }
+                    else if (event.text.unicode == '\r'){
+                        saveGame(word, word_hidden, used, newsave_name);
                         mode = 1;
                     }
                 }
@@ -263,13 +318,14 @@ int main(void){
                             savefile_name.erase(savefile_name.size()-1, 1); // delete the last character
                             SFused.setString(savefile_name);
                         }
-                        else { //normal letters
+                        else if (isAlNum(event.text.unicode)) {
                             savefile_name.push_back(static_cast<char>(event.text.unicode));
                             SFused.setString(savefile_name);
                         }
                     }
 
-                    else if (savefile_name.size() >= MIN_LETTERS){
+                    else {
+                    // else if (savefile_name.size() >= MIN_LETTERS){
 
                         word = loadSaveLine(1, savefile_name);
                         word_hidden = loadSaveLine(2, savefile_name);
@@ -278,10 +334,10 @@ int main(void){
                         title.setString(word);
                         hidden_word.setString(word_hidden);
                         SFused.setString(used);
+                        fails = used.size();
 
                         title = center(title, 2.0f, 7.0f);
                         hidden_word = center(hidden_word, 2.0f, 2.0f);
-
                         mode = 1;
                     }
 
@@ -294,19 +350,22 @@ int main(void){
                         letter = getPolishLetter(event.text.unicode);
                     else letter = event.text.unicode;
 
+                    if (isLetterInWstring(word, letter) && !isLetterInWstring(word_hidden, letter)) {
+                        correct_guesses++;
+                    }
+
                     word_hidden = fillWord(word, word_hidden, letter);
                     hidden_word.setString(word_hidden);
 
                     //fail
-                    if (!isLetterInWstring(word,letter)) {
-                        if (!isLetterInWstring(used,letter) && isLetterAllowed(event.text.unicode)) {
+                    if (!isLetterInWstring(word,letter) && !isLetterInWstring(used,letter) && isLetterAllowed(event.text.unicode)) {
                             used+=letter;
                             fails++;
-                        }
                     }
+
                     SFused.setString(used);
                     SFused = center(SFused, 2.0f, 1.1f);
-                    SFfails.setString(std::to_wstring(fails));
+                    SFfails.setString(std::to_wstring((int)fails));
                     SFfails = center(SFfails, 2.0f, 1.05f);
 
                     // check for the win
@@ -317,6 +376,7 @@ int main(void){
             }
             window.clear();
             if (mode == 0) { //menu
+                window.draw(title);
                 window.draw(main_menu);
                 window.draw(begin_game_button);
                 window.draw(end_game_button);
@@ -330,16 +390,40 @@ int main(void){
                 window.draw(SFfails);
             }
             if (mode == 2) { //win
-                title.setString(L"You have won!");
-                title = center(title, 2.0f, 3.0f);
+                title.setString(L"Congratulations!");
+                title = center(title, 2.0f, 7.0f);
+
+                SFword_reveal.setString(L"The word was: "+word);
+                SFword_reveal = center(SFword_reveal, 2.0f, 3.6f);
+                window.draw(SFword_reveal);
+
+                SFendcorrect_guesses.setString("Correct guesses: " + std::to_string((int)correct_guesses));
+                SFendcorrect_guesses = center(SFendcorrect_guesses, 2.0f, 2.6f);
+                window.draw(SFendcorrect_guesses);
+
+                SFendfails.setString("Incorrect guesses: " + std::to_string((int)fails));
+                SFendfails = center(SFendfails, 2.0f, 2.3f);
+                window.draw(SFendfails);
+
+                SFcorrect_incorrect_ratio.setString("Ratio: " + std::to_string((int)(correct_guesses/(correct_guesses+fails)*100))+"%");
+                SFcorrect_incorrect_ratio = center(SFcorrect_incorrect_ratio, 2.0f, 1.9f);
+                window.draw(SFcorrect_incorrect_ratio);
+
+
             }
-            if (mode == 3) {
+            if (mode == 3) { // human input
+                window.draw(SFinput_prompt);
+                window.draw(SFhuman_input);
+                // window.draw(SFused);
+            }
+            if (mode == 4) { // loading a save
                 window.draw(SFused);
             }
-            if (mode == 4) {
+            if (mode == 5) { // saving the game
                 window.draw(SFused);
             }
             window.draw(title);
+            window.draw(SFkeybinds);
             window.display();
         }
     }
