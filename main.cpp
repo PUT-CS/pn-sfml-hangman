@@ -40,7 +40,7 @@ Config CONFIG;
 
 int main(void){
     srand(time(NULL));
-
+    system("mkdir saves 2> /dev/null");
     CONFIG = getConfig();
 
     char* dirty_word;
@@ -185,6 +185,7 @@ int main(void){
     "New game (CPU): CTRL+N\n"
     "New game (HUM): CTRL+H\n"
     "Load Game:      CTRL+L\n"
+    "Save Game:      CTRL+S\n"
     "Mute Sounds:    CTRL+Subtract\n"
     "Unmute Sounds:  CTRL+Plus\n"
     "About:          CTRL+A\n"

@@ -22,6 +22,7 @@ Modify `config.hangman`.
 
 The syntax is self-explanatory.
 The changes take effect without a recompilation, but if something goes wrong, you'll have to use the `make` command included in the `base-devel` package group in your distribution's repo.
+If you'd still be unable to compile the program, install `sfml-devel`.
 
 ## Wordlists
 

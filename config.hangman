@@ -8,7 +8,7 @@ Font-Size-Multiplier: 1
 Keybind-Prompts: 1
 Font-File: SourceCodePro-MediumIt.otf
 Window-Name: Hangman
-Wordlist-Name: easy.txt
+Wordlist-Name: slowa.txt
 Audio: 1
 Music: PaoloPavan-Opposites.ogg
 Music-Volume-Multiplier: 1
