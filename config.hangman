@@ -4,10 +4,10 @@ Background-B: 0
 Font-R: 255
 Font-G: 255
 Font-B: 255
-Keybind-Prompts: true
+Font-Size-Multiplier: 1
+Keybind-Prompts: 1
 Font-File: NotoSansMono-Regular.ttf
 Window-Name: Hangman
 Wordlist-Name: slowa.txt
-Music: true
-
-
+Music-On: 1
+Music: PaoloPavan-Opposites.ogg

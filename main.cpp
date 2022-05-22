@@ -1,8 +1,12 @@
 #include <SFML/Config.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <SFML/Audio.hpp>
+#include <cstdlib>
 #include <iostream>
+#include <ostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -12,16 +16,20 @@
 #include "src/logic.hpp"
 #include "src/stringops.hpp"
 #include "src/sfmlops.hpp"
+#include "src/config.hpp"
 
 // #define NUM_OF_WORDS 9
 #define NUM_OF_WORDS 610875
 #define MAX_LETTERS 16
 #define MIN_LETTERS 5
+#define SCREEN_X 1000
+#define SCREEN_Y 1000
 
 const char* filename = "assets/wordlists/slowa.txt";
 // const char* savefile = "saves/save10.hangman";
 
 int mode = 0;
+Config CONFIG;
 // 0 - menu
 // 1 - gra
 // 2 - win screen
@@ -63,14 +71,15 @@ std::wstring loadSaveLine(int line_num, std::string savefile_name){
     FILE *wordlist;
     char* word;
     struct stat sb;
-    stat(savefile_name.c_str(), &sb);
+    std::string path = "saves/"+savefile_name;
+    stat(path.c_str(), &sb);
     // stat(savefile., &sb);
     char *current_line = (char*)malloc(sb.st_size);
 
-    wordlist = fopen(savefile_name.c_str(), "r");
+    wordlist = fopen(path.c_str(), "r");
     // wordlist = fopen(savefile, "r");
     if (wordlist == NULL) {
-        printf("Unable to read the %s\n", savefile_name.c_str());
+        printf("Unable to read the %s\n", path.c_str());
         exit(1);
     }
     for(int i=0; i<line_num; i++){
@@ -124,57 +133,87 @@ int isAlNum(sf::Uint32 code){
 int main(void){
     srand(time(NULL));
 
-    // char* dirty_word = getRandomWord();
-    // std::string wordstr(dirty_word, dirty_word + strlen(dirty_word)-1);
-    // std::wstring word = stringToWstring(wordstr);
-    // std::wstring word_hidden;
-    // word_hidden = hideWord(word);
+    CONFIG = getConfig();
+    std::wcout<<CONFIG.WINDOW_NAME<<std::endl;
+
     char* dirty_word;
-    // std::string wordstr(dirty_word, dirty_word + strlen(dirty_word)-1);
     std::wstring word;
     std::wstring word_hidden;
 
-    sf::RenderWindow window(sf::VideoMode(1000,1000), "Hangman");
+    sf::RenderWindow window(sf::VideoMode(SCREEN_X,SCREEN_Y), CONFIG.WINDOW_NAME);
     sf::Font font;
-    if(!font.loadFromFile("assets/fonts/NotoSansMono-Regular.ttf")){
+    std::string fontnamestr(CONFIG.FONT_FILE.begin(), CONFIG.FONT_FILE.end());
+
+    if(!font.loadFromFile("assets/fonts/" + fontnamestr)){
         puts("COULDN'T LOAD FONT");
         exit(1);
     }
 
+    sf::Music music;
+    std::string musicnamestr(CONFIG.MUSIC_NAME.begin(), CONFIG.MUSIC_NAME.end());
+    std::string musicpath = "assets/music/" + musicnamestr;
+    music.setVolume(50);
+
+    if (!music.openFromFile(musicpath)) {
+        puts("COULDN'T LOAD MUSIC");
+        exit(1);
+    }
+    music.setLoop(1);
+    if (CONFIG.MUSIC_ON)
+        music.play();
+
+    sf::SoundBuffer correctbuffer;
+    if (!correctbuffer.loadFromFile("assets/sounds/correct.wav")) {
+        puts("COULDN'T LOAD CORRECT.WAV");
+        exit(1);
+    }
+    sf::Sound correct;
+    correct.setBuffer(correctbuffer);
+
+    sf::SoundBuffer incorrectbuffer;
+    if (!incorrectbuffer.loadFromFile("assets/sounds/incorrect.wav")) {
+        puts("COULDN'T LOAD INCORRECT.WAV");
+        exit(1);
+    }
+    sf::Sound incorrect;
+    incorrect.setBuffer(incorrectbuffer);
+
     sf::Event event;
-    sf::Color DarkGreen(16,130,0);
-    sf::Color DarkRed(150,0,0);
+    sf::Color BackgroundColor(CONFIG.BG_R, CONFIG.BG_G, CONFIG.BG_B);
+    sf::Color FontColor(CONFIG.FNT_R, CONFIG.FNT_G, CONFIG.FNT_B);
+    // sf::Color DarkGreen(16,130,0);
+    // sf::Color DarkRed(150,0,0);
     sf::Color Gray(90,90,90);
 
-    sf::Text title;
-    title = applyStyle(title, font, 80);
+    sf::Text SFtitle;
+    SFtitle = applyStyle(SFtitle, font, 80, FontColor, CONFIG.FNT_MULTIPLIER);
     // title.setString(word);
-    title.setString(L"");
-    title.setString(L"Hangman");
-    title = center(title, 2.0f, 7.0f);
+    SFtitle.setString(L"");
+    SFtitle.setString(L"Hangman");
+    SFtitle = center(SFtitle, 2.0f, 7.0f);
 
-    sf::Text main_menu;
-    main_menu = applyStyle(main_menu, font, 56);
-    main_menu.setString(L"Main Menu");
-    main_menu = center(main_menu, 2.0f, 2.8f);
+    sf::Text SFmain_menu;
+    SFmain_menu = applyStyle(SFmain_menu, font, 56, FontColor, CONFIG.FNT_MULTIPLIER);
+    SFmain_menu.setString(L"Main Menu");
+    SFmain_menu = center(SFmain_menu, 2.0f, 2.8f);
 
     sf::Text SFused;
-    SFused = applyStyle(SFused, font, 20);
+    SFused = applyStyle(SFused, font, 20, FontColor, CONFIG.FNT_MULTIPLIER);
     SFused.setString(L"Michał Miłek & Sebastian Nowak");
     SFused = center(SFused, 2.0f, 1.1f);
 
     sf::Text SFfails;
-    SFfails = applyStyle(SFfails, font, 30);
+    SFfails = applyStyle(SFfails, font, 30, FontColor, CONFIG.FNT_MULTIPLIER);
     SFfails.setString("2022");
     SFfails = center(SFfails, 2.0f, 1.05f);
 
     sf::Text new_game;
-    new_game = applyStyle(new_game, font, 30);
+    new_game = applyStyle(new_game, font, 30, FontColor, CONFIG.FNT_MULTIPLIER);
     new_game.setString("New Game");
     new_game = center(new_game, 2.0f, 2.03f);
 
     sf::Text load_save;
-    load_save = applyStyle(load_save, font, 30);
+    load_save = applyStyle(load_save, font, 30, FontColor, CONFIG.FNT_MULTIPLIER);
     load_save.setString("Load Save");
     load_save = center(load_save, 2.0f, 1.52f);
 
@@ -194,12 +233,11 @@ int main(void){
     end_game_button.setPosition(1000/2.0f, 1000/1.5f);
     end_game_button.setOrigin(end_game_buttonRect.width/2,end_game_buttonRect.height/2);
 
-    sf::Text hidden_word;
-    hidden_word = applyStyle(hidden_word, font, 50);
-    // hidden_word.setString(word_hidden);
-    hidden_word.setString(L"");
-    hidden_word.setLetterSpacing(3.0f);
-    hidden_word = center(hidden_word, 2.0f, 2.0f);
+    sf::Text SFword_hidden;
+    SFword_hidden = applyStyle(SFword_hidden, font, 50, FontColor, CONFIG.FNT_MULTIPLIER);
+    SFword_hidden.setString(L"");
+    SFword_hidden.setLetterSpacing(3.0f);
+    SFword_hidden = center(SFword_hidden, 2.0f, 2.0f);
 
     std::wstring used = L"";
     std::wstring letter;
@@ -210,36 +248,36 @@ int main(void){
     float correct_guesses = 0;
 
     sf::Text used_letters;
-    used_letters = applyStyle(used_letters, font, 50);
+    used_letters = applyStyle(used_letters, font, 50, FontColor, CONFIG.FNT_MULTIPLIER);
     used_letters.setString(used);
     used_letters.setLetterSpacing(3.0f);
     used_letters = center(used_letters, 2.0f, 1.10f);
 
     sf::Text SFendfails;
-    SFendfails = applyStyle(SFendfails, font, 40);
+    SFendfails = applyStyle(SFendfails, font, 40, FontColor, CONFIG.FNT_MULTIPLIER);
     SFendfails.setString(std::to_string(fails));
     SFendfails = center(SFendfails, 2.0f, 1.3f);
 
     sf::Text SFcorrect_incorrect_ratio;
-    SFcorrect_incorrect_ratio = applyStyle(SFcorrect_incorrect_ratio, font, 40);
+    SFcorrect_incorrect_ratio = applyStyle(SFcorrect_incorrect_ratio, font, 40, FontColor, CONFIG.FNT_MULTIPLIER);
     SFcorrect_incorrect_ratio = center(SFcorrect_incorrect_ratio, 2.0f, 1.1f);
 
     sf::Text SFendcorrect_guesses;
-    SFendcorrect_guesses = applyStyle(SFendcorrect_guesses, font, 40);
+    SFendcorrect_guesses = applyStyle(SFendcorrect_guesses, font, 40, FontColor, CONFIG.FNT_MULTIPLIER);
     SFendcorrect_guesses.setString(std::to_string(correct_guesses));
     SFendcorrect_guesses = center(SFendcorrect_guesses, 2.0f, 1.2f);
 
     sf::Text SFword_reveal;
-    SFword_reveal = applyStyle(SFword_reveal, font, 40);
+    SFword_reveal = applyStyle(SFword_reveal, font, 40, FontColor, CONFIG.FNT_MULTIPLIER);
     SFword_reveal = center(SFword_reveal, 2.0f, 1.7f);
 
     sf::Text SFinput_prompt;
-    SFinput_prompt = applyStyle(SFinput_prompt, font, 30);
+    SFinput_prompt = applyStyle(SFinput_prompt, font, 30, FontColor, CONFIG.FNT_MULTIPLIER);
     SFinput_prompt.setString("Input the word for the other player to guess");
     SFinput_prompt = center(SFinput_prompt, 2.0f, 2.0f);
 
     sf::Text SFhuman_input;
-    SFhuman_input = applyStyle(SFhuman_input, font, 25);
+    SFhuman_input = applyStyle(SFhuman_input, font, 25, FontColor, CONFIG.FNT_MULTIPLIER);
     SFhuman_input.setString(L"");
     SFhuman_input = center(SFhuman_input, 2.0f, 1.8f);
 
@@ -249,7 +287,7 @@ int main(void){
     // SFnewsave_name = center(SFnewsave_name, 2.0f, 1.8f);
 
     sf::Text SFkeybinds;
-    SFkeybinds = applyStyle(SFkeybinds, font, 15);
+    SFkeybinds = applyStyle(SFkeybinds, font, 15, FontColor, CONFIG.FNT_MULTIPLIER);
     SFkeybinds.setString("New game (CPU): CTRL+N\nNew game (HUM): CTRL+H\nLoad Game:      CTRL+L\nQuit:           CTRL+Q ");
     SFkeybinds = center(SFkeybinds, 5.0f, 1.1f);
 
@@ -264,7 +302,21 @@ int main(void){
                 window.close();
             }
 
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::Hyphen)) {
+                music.setVolume(0);
+                correct.setVolume(0);
+                incorrect.setVolume(0);
+            }
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::Equal)) {
+                music.setVolume(100);
+                correct.setVolume(100);
+                incorrect.setVolume(100);
+            }
+
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {
+                humanword.clear();
+                SFhuman_input.setString(L"");
                 mode = 3; // get human input for the word
             }
 
@@ -273,18 +325,22 @@ int main(void){
                 std::string wordstr(dirty_word, dirty_word + strlen(dirty_word)-1);
                 word = stringToWstring(wordstr);
                 word_hidden = hideWord(word);
-                hidden_word.setString(word_hidden);
-                hidden_word = center(hidden_word, 2.0f, 2.0f);
+                SFword_hidden.setString(word_hidden);
+                SFword_hidden = center(SFword_hidden, 2.0f, 2.0f);
                 fails = 0;
                 used.clear();
                 mode = 1; // start the game
             }
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
+                SFhuman_input.setString("");
+                savefile_name.clear();
                 mode = 4; // load save
             }
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+                newsave_name.clear();
+                SFhuman_input.setString("");
                 mode = 5;
             }
 
@@ -305,7 +361,7 @@ int main(void){
                     }
                     else if (humanword.size() >= MIN_LETTERS){
                         word = humanword;
-                        title.setString(word);
+                        SFtitle.setString(word);
                         word_hidden = hideWord(word);
                         mode = 1;
                     }
@@ -333,12 +389,13 @@ int main(void){
 
                         if (event.text.unicode == '\b' && savefile_name.size() > 0) { //backspace
                             savefile_name.erase(savefile_name.size()-1, 1); // delete the last character
-                            SFused.setString(savefile_name);
+                            SFhuman_input.setString(savefile_name);
                         }
                         else if (isAlNum(event.text.unicode)) {
                             savefile_name.push_back(static_cast<char>(event.text.unicode));
-                            SFused.setString(savefile_name);
+                            SFhuman_input.setString(savefile_name);
                         }
+                        SFhuman_input = center(SFhuman_input, 2.0f, 1.8f);
                     }
 
                     else {
@@ -348,13 +405,13 @@ int main(void){
                         word_hidden = loadSaveLine(2, savefile_name);
                         used = loadSaveLine(3, savefile_name);
 
-                        title.setString(word);
-                        hidden_word.setString(word_hidden);
+                        SFtitle.setString(word);
+                        SFword_hidden.setString(word_hidden);
                         SFused.setString(used);
                         fails = used.size();
 
-                        title = center(title, 2.0f, 7.0f);
-                        hidden_word = center(hidden_word, 2.0f, 2.0f);
+                        SFtitle = center(SFtitle, 2.0f, 7.0f);
+                        SFword_hidden = center(SFword_hidden, 2.0f, 2.0f);
                         mode = 1;
                     }
 
@@ -369,15 +426,17 @@ int main(void){
 
                     if (isLetterInWstring(word, letter) && !isLetterInWstring(word_hidden, letter)) {
                         correct_guesses++;
+                        correct.play();
                     }
 
                     word_hidden = fillWord(word, word_hidden, letter);
-                    hidden_word.setString(word_hidden);
+                    SFword_hidden.setString(word_hidden);
 
                     //fail
                     if (!isLetterInWstring(word,letter) && !isLetterInWstring(used,letter) && isLetterAllowed(event.text.unicode)) {
                             used+=letter;
                             fails++;
+                            incorrect.play();
                             if (fails == 10) { // lose condition
                                 mode = 6;
                             }
@@ -394,24 +453,24 @@ int main(void){
                     }
                 }
             }
-            window.clear();
+            window.clear(BackgroundColor);
             if (mode == 0) { //menu
-                window.draw(title);
-                window.draw(main_menu);
+                window.draw(SFtitle);
+                window.draw(SFmain_menu);
                 window.draw(begin_game_button);
                 window.draw(end_game_button);
                 window.draw(new_game);
                 window.draw(load_save);
             }
             if (mode == 1) { //game
-                window.draw(hidden_word);
+                window.draw(SFword_hidden);
                 window.draw(used_letters);
                 window.draw(SFused);
                 window.draw(SFfails);
             }
             if (mode == 2) { //win
-                title.setString(L"Congratulations!");
-                title = center(title, 2.0f, 7.0f);
+                SFtitle.setString(L"Congratulations!");
+                SFtitle = center(SFtitle, 2.0f, 7.0f);
 
                 SFword_reveal.setString(L"The word was: "+word);
                 SFword_reveal = center(SFword_reveal, 2.0f, 3.6f);
@@ -438,27 +497,27 @@ int main(void){
                 // window.draw(SFused);
             }
             if (mode == 4) { // loading a save
-                title.setString("Load a game");
-                title = center(title, 2.0f, 7.0f);
+                SFtitle.setString("Load a game");
+                SFtitle = center(SFtitle, 2.0f, 7.0f);
                 SFinput_prompt.setString("Input the name of a save to load");
                 SFinput_prompt = center(SFinput_prompt, 2.0f, 2.0f);
-                window.draw(SFused);
-                window.draw(title);
+                window.draw(SFhuman_input);
+                window.draw(SFtitle);
                 window.draw(SFinput_prompt);
             }
             if (mode == 5) { // saving the game
-                title.setString("Save the game");
-                title = center(title, 2.0f, 7.0f);
+                SFtitle.setString("Save the game");
+                SFtitle = center(SFtitle, 2.0f, 7.0f);
                 SFinput_prompt.setString("Input the name of a new save");
                 SFinput_prompt = center(SFinput_prompt, 2.0f, 2.0f);
                 window.draw(SFinput_prompt);
-                window.draw(title);
+                window.draw(SFtitle);
                 window.draw(SFhuman_input);
             }
             if (mode == 6) {
-                title.setString("You've lost!");
-                title = center(title, 2.0f, 7.0f);
-                window.draw(title);
+                SFtitle.setString("You've lost!");
+                SFtitle = center(SFtitle, 2.0f, 7.0f);
+                window.draw(SFtitle);
 
                 SFword_reveal.setString(L"The word was: "+word);
                 SFword_reveal = center(SFword_reveal, 2.0f, 3.6f);
@@ -477,7 +536,9 @@ int main(void){
                 window.draw(SFcorrect_incorrect_ratio);
             }
             // window.draw(title);
-            window.draw(SFkeybinds);
+            if (CONFIG.KB_PROMPTS) {
+                window.draw(SFkeybinds);
+            }
             window.display();
         }
     }

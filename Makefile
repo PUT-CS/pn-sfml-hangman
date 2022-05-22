@@ -1,6 +1,6 @@
 CC=g++
-LIBSFML=-lsfml-graphics -lsfml-window -lsfml-system
-HEADERS=src/logic.cpp src/sfmlops.cpp src/stringops.cpp
+LIBSFML=-lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
+HEADERS=src/logic.cpp src/sfmlops.cpp src/stringops.cpp src/config.cpp
 
 .PHONY: test clean
 

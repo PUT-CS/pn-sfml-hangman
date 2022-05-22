@@ -1,6 +1,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <iostream>
 #include "sfmlops.hpp"
+#include "config.hpp"
 #define SCREEN_X 1000
 #define SCREEN_Y 1000
 
@@ -11,10 +12,10 @@ sf::Text center(sf::Text object, float x, float y){
     return object;
 }
 
-sf::Text applyStyle(sf::Text object, sf::Font &font, int size){
+sf::Text applyStyle(sf::Text object, sf::Font &font, int size, sf::Color color, float multiplier){
     object.setFont(font);
-    object.setCharacterSize(size);
+    object.setCharacterSize(size*multiplier);
     object.setStyle(sf::Text::Bold);
-    object.setFillColor(sf::Color::White);
+    object.setFillColor(color);
     return object;
 }
