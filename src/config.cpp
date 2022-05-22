@@ -33,6 +33,10 @@ Config getConfig(){
 	file >> CONFIG.MUSIC_ON;
 	file >> dump;
 	file >> CONFIG.MUSIC_NAME;
+	file >> dump;
+	file >> CONFIG.MUSIC_VOL_MULTIPLIER;
+	file >> dump;
+	file >> CONFIG.SOUNDS_VOL_MULTIPLIER;
 
 	file.close();
 	return CONFIG;

@@ -9,6 +9,7 @@ test: hangman
 
 hangman: main.o
 	$(CC) main.o -o hangman $(HEADERS) $(LIBSFML)
+	rm -f main.o
 
 main.o: main.cpp
 	$(CC) -c main.cpp

@@ -30,7 +30,7 @@
 int mode = 0;
 Config CONFIG;
 // 0 - menu
-// 1 - gra
+// 1 - main game loop
 // 2 - win screen
 // 3 - human input
 // 4 - load save
@@ -67,7 +67,7 @@ int main(void){
     sf::Music music;
     std::string musicnamestr(CONFIG.MUSIC_NAME.begin(), CONFIG.MUSIC_NAME.end());
     std::string musicpath = "assets/music/" + musicnamestr;
-    music.setVolume(100);
+    music.setVolume(100*CONFIG.MUSIC_VOL_MULTIPLIER);
 
     if (!music.openFromFile(musicpath)) {
         puts("COULDN'T LOAD MUSIC");
@@ -84,7 +84,7 @@ int main(void){
     }
     sf::Sound correct;
     correct.setBuffer(correctbuffer);
-    correct.setVolume(100);
+    correct.setVolume(100*CONFIG.SOUNDS_VOL_MULTIPLIER);
 
     sf::SoundBuffer incorrectbuffer;
     if (!incorrectbuffer.loadFromFile("assets/sounds/incorrect.wav")) {
@@ -93,7 +93,7 @@ int main(void){
     }
     sf::Sound incorrect;
     incorrect.setBuffer(incorrectbuffer);
-    incorrect.setVolume(100);
+    incorrect.setVolume(100*CONFIG.SOUNDS_VOL_MULTIPLIER);
 
     sf::Event event;
     sf::Color BackgroundColor(CONFIG.BG_R, CONFIG.BG_G, CONFIG.BG_B);
@@ -221,9 +221,9 @@ int main(void){
             }
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::Equal)) {
-                music.setVolume(100);
-                correct.setVolume(100);
-                incorrect.setVolume(100);
+                music.setVolume(100*CONFIG.MUSIC_VOL_MULTIPLIER);
+                correct.setVolume(100*CONFIG.SOUNDS_VOL_MULTIPLIER);
+                incorrect.setVolume(100*CONFIG.SOUNDS_VOL_MULTIPLIER);
             }
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {

@@ -9,9 +9,9 @@ Keybind-Prompts: 1
 Font-File: SourceCodePro-MediumIt.otf
 Window-Name: Hangman
 Wordlist-Name: slowa.txt
-Music-On: 1
+Audio: 1
 Music: PaoloPavan-Opposites.ogg
+Music-Volume-Multiplier: 1
+Sounds-Volume-Multiplier: 1
 -----------------------------------------
 ### By default, nothing below the above line gets read ###
-
-Font-File: NotoSansMono-Regular.ttf

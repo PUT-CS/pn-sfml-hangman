@@ -16,6 +16,8 @@ typedef struct{
 	std::wstring WORDLIST;
 	int MUSIC_ON;
 	std::wstring MUSIC_NAME;
+	float MUSIC_VOL_MULTIPLIER;
+	float SOUNDS_VOL_MULTIPLIER;
 }Config;
 
 Config getConfig();
