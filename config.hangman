@@ -1,17 +1,49 @@
-Background-R: 0
-Background-G: 0
-Background-B: 0
-Font-R: 255
-Font-G: 255
-Font-B: 255
+Background-R: 56
+Background-G: 62
+Background-B: 86
+Font-R: 212
+Font-G: 181
+Font-B: 176
 Font-Size-Multiplier: 1
 Keybind-Prompts: 1
 Font-File: SourceCodePro-MediumIt.otf
 Window-Name: Hangman
-Wordlist-Name: slowa.txt
+Wordlist-Name: easy.txt
 Audio: 1
 Music: PaoloPavan-Opposites.ogg
 Music-Volume-Multiplier: 1
 Sounds-Volume-Multiplier: 1
 -----------------------------------------
 ### By default, nothing below the above line gets read ###
+
+#blue background and beige font #default
+Background-R: 56
+Background-G: 62
+Background-B: 86
+Font-R: 212
+Font-G: 181
+Font-B: 176
+
+#green background with yellow font
+Background-R: 36
+Background-G: 105
+Background-B: 35
+Font-R: 255
+Font-G: 201
+Font-B: 1
+
+#darker brown background with lighter brown font
+Background-R: 135
+Background-G: 100
+Background-B: 69
+Font-R: 244
+Font-G: 223
+Font-B: 186
+
+#dark red background with light yellow font
+Background-R: 99
+Background-G: 38
+Background-B: 38
+Font-R: 218
+Font-G: 204
+Font-B: 150
