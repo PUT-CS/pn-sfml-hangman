@@ -140,27 +140,11 @@ int main(void){
     SFfails.setString("2022");
     SFfails = center(SFfails, 2.0f, 1.4f);
 
-    sf::Text new_game;
-    new_game = applyStyle(new_game, font, 30, FontColor, CONFIG.FNT_MULTIPLIER);
-    new_game.setString("New Game");
-    new_game = center(new_game, 2.0f, 2.03f);
-
-    sf::Text load_save;
-    load_save = applyStyle(load_save, font, 30, FontColor, CONFIG.FNT_MULTIPLIER);
-    load_save.setString("Load Save");
-    load_save = center(load_save, 2.0f, 1.52f);
-
     sf::Text SFword_hidden;
     SFword_hidden = applyStyle(SFword_hidden, font, 50, FontColor, CONFIG.FNT_MULTIPLIER);
     SFword_hidden.setString(L"");
     SFword_hidden.setLetterSpacing(3.0f);
     SFword_hidden = center(SFword_hidden, 2.0f, 2.0f);
-
-    sf::Text used_letters;
-    used_letters = applyStyle(used_letters, font, 50, FontColor, CONFIG.FNT_MULTIPLIER);
-    used_letters.setString(used);
-    used_letters.setLetterSpacing(3.0f);
-    used_letters = center(used_letters, 2.0f, 1.10f);
 
     sf::Text SFendfails;
     SFendfails = applyStyle(SFendfails, font, 40, FontColor, CONFIG.FNT_MULTIPLIER);
@@ -399,14 +383,9 @@ int main(void){
                 window.draw(SFkeybinds);
                 SFkeybinds = applyStyle(SFkeybinds, font, 16, FontColor, CONFIG.FNT_MULTIPLIER);
                 SFkeybinds = center(SFkeybinds, 5.0f, 1.1f);
-                // window.draw(begin_game_button);
-                // window.draw(end_game_button);
-                // window.draw(new_game);
-                // window.draw(load_save);
             }
             if (mode == 1) { //game
                 window.draw(SFword_hidden);
-                window.draw(used_letters);
                 window.draw(SFused);
                 window.draw(SFfails);
             }
