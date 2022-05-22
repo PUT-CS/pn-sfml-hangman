@@ -6,8 +6,12 @@ Font-G: 255
 Font-B: 255
 Font-Size-Multiplier: 1
 Keybind-Prompts: 1
-Font-File: NotoSansMono-Regular.ttf
+Font-File: SourceCodePro-MediumIt.otf
 Window-Name: Hangman
 Wordlist-Name: slowa.txt
 Music-On: 1
 Music: PaoloPavan-Opposites.ogg
+-----------------------------------------
+### By default, nothing below the above line gets read ###
+
+Font-File: NotoSansMono-Regular.ttf

@@ -107,3 +107,7 @@ int isLetterAllowed(sf::Uint32 code){
         return 0;
     }
 }
+
+int isAlNum(sf::Uint32 code){
+    return (code >=32 && code <= 126) || isLetterAllowed(code)? 1 : 0 ;
+}

@@ -1,14 +1,14 @@
 CC=g++
 LIBSFML=-lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
-HEADERS=src/logic.cpp src/sfmlops.cpp src/stringops.cpp src/config.cpp
+HEADERS=src/logic.cpp src/sfmlops.cpp src/stringops.cpp src/config.cpp src/fileops.cpp
 
 .PHONY: test clean
 
-test: hangman-app
-	./hangman-app&
+test: hangman
+	./hangman&
 
-hangman-app: main.o
-	$(CC) main.o -o hangman-app $(HEADERS) $(LIBSFML)
+hangman: main.o
+	$(CC) main.o -o hangman $(HEADERS) $(LIBSFML)
 
 main.o: main.cpp
 	$(CC) -c main.cpp
