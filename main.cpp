@@ -47,7 +47,6 @@ int searching = 0;
 void research(char* word, Config CONFIG){
 // void research(std::wstring word, Config CONFIG){
     searching = 1;
-    std::cout<<"KURWAAAAA"<<std::endl;
     // std::string wordstr(word.begin(), word.end());
     std::string wordstr(word, word+strlen(word));
     std::string browserstr(CONFIG.BROWSER.begin(), CONFIG.BROWSER.end());
