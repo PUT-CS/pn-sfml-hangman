@@ -1,30 +1,13 @@
 #include <SFML/Config.hpp>
 #include <SFML/Graphics.hpp>
-#include <SFML/Graphics/Color.hpp>
-#include <SFML/System/Clock.hpp>
-#include <SFML/System/Time.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Window/Keyboard.hpp>
 #include <SFML/Audio.hpp>
-#include <cstdlib>
-#include <iostream>
-#include <ostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <sys/stat.h>
 #include <string.h>
-#include <fstream>
-#include <array>
-#include "src/logic.hpp"
-#include "src/stringops.hpp"
-#include "src/sfmlops.hpp"
-#include "src/config.hpp"
-#include "src/fileops.hpp"
-#include <unistd.h>
-#include <memory>
-#include <stdexcept>
-#include <vector>
+#include "logic.hpp"
+#include "stringops.hpp"
+#include "sfmlops.hpp"
+#include "config.hpp"
+#include "fileops.hpp"
+#include "websearch.hpp"
 
 #define MAX_LETTERS 16
 #define MIN_LETTERS 5
@@ -33,7 +16,6 @@
 
 int mode = 0;
 Config CONFIG;
-int searching = 0;
 // 0 - menu
 // 1 - main game loop
 // 2 - win screen
@@ -42,38 +24,6 @@ int searching = 0;
 // 5 - saving
 // 6 - lose screen
 // 7 - about
-
-
-void research(char* word, Config CONFIG){
-// void research(std::wstring word, Config CONFIG){
-    searching = 1;
-    // std::string wordstr(word.begin(), word.end());
-    std::string wordstr(word, word+strlen(word));
-    std::string browserstr(CONFIG.BROWSER.begin(), CONFIG.BROWSER.end());
-    std::string enginestr(CONFIG.SEARCH_ENGINE.begin(), CONFIG.SEARCH_ENGINE.end());
-    std::string command;
-    if (enginestr == "google") {
-        command = browserstr + " https://www.google.com/search?q=" + wordstr + " &";
-    }
-    else if (enginestr == "duckduckgo") {
-        command = browserstr + " https://duckduckgo.com/?q=" + wordstr + " &";
-    }
-    else if (enginestr == "bravesearch") {
-        command = browserstr + " https://search.brave.com/search?q=" + wordstr + " &";
-    }
-    else if (enginestr == "swisscows") {
-        command = browserstr + " https://swisscows.com/web?&query=" + wordstr + " &";
-    }
-    else if (enginestr == "yandex") {
-        command = browserstr + " https://yandex.com/search/?text=" + wordstr + " &";
-    }
-    else {
-        puts("Uncrecognized search engine!");
-        exit(1);
-    }
-    std::system(command.c_str());
-    return;
-}
 
 int main(void){
     srand(time(NULL));
@@ -307,10 +257,7 @@ int main(void){
             }
 
             if ((mode == 2 || mode == 6) && sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
-                if (!searching) {
                     research(dirty_word, CONFIG);
-                }
-                searching = 0;
             }
 
             if(event.type == sf::Event::TextEntered){

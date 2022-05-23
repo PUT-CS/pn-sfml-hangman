@@ -4,7 +4,7 @@
 
 Config getConfig(){
 	Config CONFIG;
-	std::wifstream file("config.hangman");
+	std::wifstream file("config/hangman.conf");
 	std::wstring dump;
 
 	file >> dump;
