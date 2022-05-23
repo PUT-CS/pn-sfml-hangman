@@ -37,6 +37,10 @@ Config getConfig(){
 	file >> CONFIG.MUSIC_VOL_MULTIPLIER;
 	file >> dump;
 	file >> CONFIG.SOUNDS_VOL_MULTIPLIER;
+	file >> dump;
+	file >> CONFIG.BROWSER;
+	file >> dump;
+	file >> CONFIG.SEARCH_ENGINE;
 
 	file.close();
 	return CONFIG;

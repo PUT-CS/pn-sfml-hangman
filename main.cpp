@@ -2,6 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/System/Clock.hpp>
+#include <SFML/System/Time.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Audio.hpp>
 #include <cstdlib>
@@ -19,8 +21,10 @@
 #include "src/sfmlops.hpp"
 #include "src/config.hpp"
 #include "src/fileops.hpp"
+#include <unistd.h>
 #include <memory>
 #include <stdexcept>
+#include <vector>
 
 #define MAX_LETTERS 16
 #define MIN_LETTERS 5
@@ -29,6 +33,7 @@
 
 int mode = 0;
 Config CONFIG;
+int searching = 0;
 // 0 - menu
 // 1 - main game loop
 // 2 - win screen
@@ -37,6 +42,39 @@ Config CONFIG;
 // 5 - saving
 // 6 - lose screen
 // 7 - about
+
+
+void research(char* word, Config CONFIG){
+// void research(std::wstring word, Config CONFIG){
+    searching = 1;
+    std::cout<<"KURWAAAAA"<<std::endl;
+    // std::string wordstr(word.begin(), word.end());
+    std::string wordstr(word, word+strlen(word));
+    std::string browserstr(CONFIG.BROWSER.begin(), CONFIG.BROWSER.end());
+    std::string enginestr(CONFIG.SEARCH_ENGINE.begin(), CONFIG.SEARCH_ENGINE.end());
+    std::string command;
+    if (enginestr == "google") {
+        command = browserstr + " https://www.google.com/search?q=" + wordstr + " &";
+    }
+    else if (enginestr == "duckduckgo") {
+        command = browserstr + " https://duckduckgo.com/?q=" + wordstr + " &";
+    }
+    else if (enginestr == "bravesearch") {
+        command = browserstr + " https://search.brave.com/search?q=" + wordstr + " &";
+    }
+    else if (enginestr == "swisscows") {
+        command = browserstr + " https://swisscows.com/web?&query=" + wordstr + " &";
+    }
+    else if (enginestr == "yandex") {
+        command = browserstr + " https://yandex.com/search/?text=" + wordstr + " &";
+    }
+    else {
+        puts("Uncrecognized search engine!");
+        exit(1);
+    }
+    std::system(command.c_str());
+    return;
+}
 
 int main(void){
     srand(time(NULL));
@@ -56,6 +94,9 @@ int main(void){
     int prev_mode;
 
     sf::RenderWindow window(sf::VideoMode(SCREEN_X,SCREEN_Y), CONFIG.WINDOW_NAME);
+    window.setFramerateLimit(60);
+    window.setKeyRepeatEnabled(0);
+    window.setVerticalSyncEnabled(1);
     sf::Font font;
     std::string fontnamestr(CONFIG.FONT_FILE.begin(), CONFIG.FONT_FILE.end());
 
@@ -179,6 +220,11 @@ int main(void){
     SFgoback_prompt.setString("Press ENTER to go back");
     SFgoback_prompt = center(SFgoback_prompt, 2.0f, 1.1f);
 
+    sf::Text SFsearch_prompt;
+    SFsearch_prompt = applyStyle(SFsearch_prompt, font, 30, FontColor, CONFIG.FNT_MULTIPLIER);
+    SFsearch_prompt.setString("Confused? Look up the word with CTRL+R");
+    SFsearch_prompt = center(SFsearch_prompt, 2.0f, 1.5f);
+
     sf::Text SFkeybinds;
     SFkeybinds = applyStyle(SFkeybinds, font, 16, FontColor, CONFIG.FNT_MULTIPLIER);
     SFkeybinds.setString(
@@ -259,6 +305,13 @@ int main(void){
                 newsave_name.clear();
                 SFhuman_input.setString("");
                 mode = 5;
+            }
+
+            if ((mode == 2 || mode == 6) && sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
+                if (!searching) {
+                    research(dirty_word, CONFIG);
+                }
+                searching = 0;
             }
 
             if(event.type == sf::Event::TextEntered){
@@ -411,7 +464,7 @@ int main(void){
                 SFcorrect_incorrect_ratio = center(SFcorrect_incorrect_ratio, 2.0f, 1.9f);
                 window.draw(SFcorrect_incorrect_ratio);
 
-
+                window.draw(SFsearch_prompt);
             }
             if (mode == 3) { // human input
                 SFinput_prompt = center(SFinput_prompt, 2.0f, 2.0f);
@@ -458,6 +511,8 @@ int main(void){
                 SFcorrect_incorrect_ratio.setString("Ratio: " + std::to_string((int)(correct_guesses/(correct_guesses+fails)*100))+"%");
                 SFcorrect_incorrect_ratio = center(SFcorrect_incorrect_ratio, 2.0f, 1.9f);
                 window.draw(SFcorrect_incorrect_ratio);
+
+                window.draw(SFsearch_prompt);
             }
 
             if (mode == 7) {

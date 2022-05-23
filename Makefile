@@ -5,7 +5,7 @@ HEADERS=src/logic.cpp src/sfmlops.cpp src/stringops.cpp src/config.cpp src/fileo
 .PHONY: test clean
 
 test: hangman
-	./hangman&
+	./hangman
 
 hangman: main.o
 	$(CC) main.o -o hangman $(HEADERS) $(LIBSFML)

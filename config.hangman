@@ -13,6 +13,8 @@ Audio: 1
 Music: PaoloPavan-Opposites.ogg
 Music-Volume-Multiplier: 1
 Sounds-Volume-Multiplier: 1
+Browser: librewolf
+Search-Engine: duckduckgo
 -----------------------------------------
 ### By default, nothing below the above line gets read ###
 
