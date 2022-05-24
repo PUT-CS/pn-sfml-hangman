@@ -99,11 +99,11 @@ void saveGame(std::wstring word, std::wstring word_hidden, std::wstring used, st
     touchcommand += path;
     system(touchcommand.c_str());
 
-    if (used.size() == 0) { // the player has no fails - fill it with a period.
+    if (used.size() == 0) { // the player has no fails - fill it with a period
         used = L".";
     }
 
-    std::wofstream newsave(path, std::ios::binary);
+    std::wofstream newsave(path);
     newsave << word << '\n';
     newsave << word_hidden << '\n';
     newsave << used << '\n';

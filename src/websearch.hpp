@@ -4,6 +4,6 @@
 #include <string.h>
 #include "config.hpp"
 
-void research(char* word, Config CONFIG);
+void research(const char* word, Config CONFIG);
 
 #endif

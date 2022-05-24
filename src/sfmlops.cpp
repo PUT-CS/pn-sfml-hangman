@@ -2,8 +2,7 @@
 #include <iostream>
 #include "sfmlops.hpp"
 #include "config.hpp"
-#define SCREEN_X 1000
-#define SCREEN_Y 1000
+
 
 sf::Text center(sf::Text object, float x, float y){
     sf::FloatRect objectRect = object.getLocalBounds();

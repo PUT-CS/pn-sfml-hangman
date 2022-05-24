@@ -1,21 +1,22 @@
-#include <SFML/Config.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-#include <string.h>
+#include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Window/ContextSettings.hpp>
+#include <SFML/Window/WindowStyle.hpp>
+#include <cstdlib>
+#include <locale>
 #include "logic.hpp"
 #include "stringops.hpp"
 #include "sfmlops.hpp"
 #include "config.hpp"
 #include "fileops.hpp"
 #include "websearch.hpp"
+#include "gallows.hpp"
 
 #define MAX_LETTERS 16
 #define MIN_LETTERS 5
-#define SCREEN_X 1000
-#define SCREEN_Y 1000
 
-int mode = 0;
-Config CONFIG;
 // 0 - menu
 // 1 - main game loop
 // 2 - win screen
@@ -26,11 +27,13 @@ Config CONFIG;
 // 7 - about
 
 int main(void){
+    // std::locale locale("pl_PL.UTF-8");
     srand(time(NULL));
     system("mkdir saves 2> /dev/null");
-    CONFIG = getConfig();
+    Config CONFIG = getConfig();
 
-    char* dirty_word;
+    int mode = 0;
+    char* dirty_word = NULL;
     std::wstring word;
     std::wstring word_hidden;
     std::wstring used = L"";
@@ -42,9 +45,12 @@ int main(void){
     float correct_guesses = 0;
     int prev_mode;
 
-    sf::RenderWindow window(sf::VideoMode(SCREEN_X,SCREEN_Y), CONFIG.WINDOW_NAME);
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+
+    sf::RenderWindow window(sf::VideoMode(SCREEN_X,SCREEN_Y), CONFIG.WINDOW_NAME, sf::Style::Default, settings);
     window.setFramerateLimit(60);
-    window.setKeyRepeatEnabled(0);
+    window.setKeyRepeatEnabled(1);
     window.setVerticalSyncEnabled(1);
     sf::Font font;
     std::string fontnamestr(CONFIG.FONT_FILE.begin(), CONFIG.FONT_FILE.end());
@@ -134,7 +140,7 @@ int main(void){
     SFword_hidden = applyStyle(SFword_hidden, font, 50, FontColor, CONFIG.FNT_MULTIPLIER);
     SFword_hidden.setString(L"");
     SFword_hidden.setLetterSpacing(3.0f);
-    SFword_hidden = center(SFword_hidden, 2.0f, 2.0f);
+    SFword_hidden = center(SFword_hidden, 2.0f, 1.6f);
 
     sf::Text SFendfails;
     SFendfails = applyStyle(SFendfails, font, 40, FontColor, CONFIG.FNT_MULTIPLIER);
@@ -188,6 +194,58 @@ int main(void){
     );
     SFkeybinds = center(SFkeybinds, 5.0f, 1.1f);
 
+    sf::RectangleShape gallow[10];
+    gallow[0].setSize(sf::Vector2f(500,16));
+    gallow[0].setOrigin(250,8);
+    gallow[0].setPosition(1000/2, 450);
+
+    gallow[1].setSize(sf::Vector2f(16,350));
+    gallow[1].setOrigin(0,400);
+    gallow[1].setPosition(250, 500);
+
+    gallow[2].setSize(sf::Vector2f(380,16));
+    gallow[2].setOrigin(250,8);
+    gallow[2].setPosition(1000/2, 50+50);
+
+    gallow[3].setSize(sf::Vector2f(50,16));
+    gallow[3].setOrigin(25,8);
+    gallow[3].setRotation(90);
+    gallow[3].setPosition(1000/2, 75+50);
+
+    gallow[4].setSize(sf::Vector2f(60,60));
+    gallow[4].setOrigin(30,30);
+    gallow[4].setPosition(1000/2, 115+50);
+
+    gallow[5].setSize(sf::Vector2f(12,120));
+    gallow[5].setOrigin(6,60);
+    gallow[5].setPosition(1000/2, 200+50);
+
+    gallow[6].setSize(sf::Vector2f(12,60));
+    gallow[6].setOrigin(6,30);
+    gallow[6].setRotation(45);
+    gallow[6].setPosition(480, 170+50);
+
+    gallow[7].setSize(sf::Vector2f(12,60));
+    gallow[7].setOrigin(6,30);
+    gallow[7].setRotation(-45);
+    gallow[7].setPosition(520, 170+50);
+
+    gallow[8].setSize(sf::Vector2f(12,80));
+    gallow[8].setOrigin(6,40);
+    gallow[8].setRotation(20);
+    gallow[8].setPosition(487, 290+50);
+
+    gallow[9].setSize(sf::Vector2f(12,80));
+    gallow[9].setOrigin(6,40);
+    gallow[9].setRotation(-20);
+    gallow[9].setPosition(513, 290+50);
+
+    for (int i=0; i<10; i++) {
+        gallow[i].setFillColor(FontColor);
+    }
+
+
+
     while (window.isOpen()) {
         while (window.waitEvent(event)){
 
@@ -237,7 +295,7 @@ int main(void){
                 word = stringToWstring(wordstr);
                 word_hidden = hideWord(word);
                 SFword_hidden.setString(word_hidden);
-                SFword_hidden = center(SFword_hidden, 2.0f, 2.0f);
+                SFword_hidden = center(SFword_hidden, 2.0f, 1.6f);
                 fails = 0;
                 correct_guesses = 0;
                 used.clear();
@@ -257,7 +315,8 @@ int main(void){
             }
 
             if ((mode == 2 || mode == 6) && sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) && sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
-                    research(dirty_word, CONFIG);
+                // std::string str(word.begin(), word.end());
+                // research(dirty_word, CONFIG);
             }
 
             if(event.type == sf::Event::TextEntered){
@@ -280,7 +339,7 @@ int main(void){
                         SFtitle.setString(word);
                         word_hidden = hideWord(word);
                         SFword_hidden.setString(word_hidden);
-                        SFword_hidden = center(SFword_hidden, 2.0f, 2.0f);
+                        SFword_hidden = center(SFword_hidden, 2.0f, 1.6f);
                         mode = 1;
                     }
                 }
@@ -329,7 +388,7 @@ int main(void){
                         fails = used.size();
 
                         SFtitle = center(SFtitle, 2.0f, 7.0f);
-                        SFword_hidden = center(SFword_hidden, 2.0f, 2.0f);
+                        SFword_hidden = center(SFword_hidden, 2.0f, 1.6f);
                         mode = 1;
                     }
 
@@ -458,7 +517,7 @@ int main(void){
                 SFcorrect_incorrect_ratio = center(SFcorrect_incorrect_ratio, 2.0f, 1.9f);
                 window.draw(SFcorrect_incorrect_ratio);
 
-                window.draw(SFsearch_prompt);
+                // window.draw(SFsearch_prompt);
             }
 
             if (mode == 7) {
@@ -475,6 +534,12 @@ int main(void){
             if (CONFIG.KB_PROMPTS && mode != 0 && mode != 7) {
                 window.draw(SFkeybinds);
             }
+            if (mode == 1) {
+                for (int i=0; i<fails; i++) {
+                    window.draw(gallow[i]);
+                }
+            }
+
             window.display();
         }
     }

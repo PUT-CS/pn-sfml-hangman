@@ -2,7 +2,7 @@
 #include "websearch.hpp"
 #include <string.h>
 
-void research(char* word, Config CONFIG){
+void research(const char* word, Config CONFIG){
 // void research(std::wstring word, Config CONFIG){
     // searching = 1;
     // std::string wordstr(word.begin(), word.end());
