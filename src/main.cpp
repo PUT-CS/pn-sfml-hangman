@@ -1,5 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/ContextSettings.hpp>
@@ -96,7 +98,7 @@ int main(void){
     sf::Color FontColor(CONFIG.FNT_R, CONFIG.FNT_G, CONFIG.FNT_B);
 
     sf::Text SFtitle;
-    SFtitle = applyStyle(SFtitle, font, 80, FontColor, CONFIG.FNT_MULTIPLIER);
+    SFtitle = applyStyle(SFtitle, font, 100, FontColor, CONFIG.FNT_MULTIPLIER);
     SFtitle.setString(L"");
     SFtitle.setString(L"Hangman");
     SFtitle = center(SFtitle, 2.0f, 7.0f);
@@ -195,50 +197,67 @@ int main(void){
     SFkeybinds = center(SFkeybinds, 5.0f, 1.1f);
 
     sf::RectangleShape gallow[10];
+    //base
     gallow[0].setSize(sf::Vector2f(500,16));
     gallow[0].setOrigin(250,8);
     gallow[0].setPosition(1000/2, 450);
 
+    //vertical
     gallow[1].setSize(sf::Vector2f(16,350));
     gallow[1].setOrigin(0,400);
     gallow[1].setPosition(250, 500);
 
+    //top
     gallow[2].setSize(sf::Vector2f(380,16));
     gallow[2].setOrigin(250,8);
     gallow[2].setPosition(1000/2, 50+50);
 
+    //rope
     gallow[3].setSize(sf::Vector2f(50,16));
     gallow[3].setOrigin(25,8);
     gallow[3].setRotation(90);
     gallow[3].setPosition(1000/2, 75+50);
 
-    gallow[4].setSize(sf::Vector2f(60,60));
-    gallow[4].setOrigin(30,30);
+    //head
+    gallow[4].setSize(sf::Vector2f(1,1));
     gallow[4].setPosition(1000/2, 115+50);
 
+    //torso
     gallow[5].setSize(sf::Vector2f(12,120));
     gallow[5].setOrigin(6,60);
     gallow[5].setPosition(1000/2, 200+50);
 
+    //larm
     gallow[6].setSize(sf::Vector2f(12,60));
     gallow[6].setOrigin(6,30);
     gallow[6].setRotation(45);
     gallow[6].setPosition(480, 170+50);
 
+    //rarm
     gallow[7].setSize(sf::Vector2f(12,60));
     gallow[7].setOrigin(6,30);
     gallow[7].setRotation(-45);
     gallow[7].setPosition(520, 170+50);
 
+    //lleg
     gallow[8].setSize(sf::Vector2f(12,80));
     gallow[8].setOrigin(6,40);
     gallow[8].setRotation(20);
-    gallow[8].setPosition(487, 290+50);
+    gallow[8].setPosition(487, 290+53);
 
+    //rleg
     gallow[9].setSize(sf::Vector2f(12,80));
     gallow[9].setOrigin(6,40);
     gallow[9].setRotation(-20);
-    gallow[9].setPosition(513, 290+50);
+    gallow[9].setPosition(513, 290+53);
+
+    sf::CircleShape head;
+    head.setRadius(30);
+    head.setFillColor(BackgroundColor);
+    head.setOutlineThickness(10);
+    head.setOutlineColor(FontColor);
+    head.setOrigin(30,30);
+    head.setPosition(1000/2, 115+50);
 
     for (int i=0; i<10; i++) {
         gallow[i].setFillColor(FontColor);
@@ -469,7 +488,7 @@ int main(void){
                 SFcorrect_incorrect_ratio = center(SFcorrect_incorrect_ratio, 2.0f, 1.9f);
                 window.draw(SFcorrect_incorrect_ratio);
 
-                window.draw(SFsearch_prompt);
+                // window.draw(SFsearch_prompt);
             }
             if (mode == 3) { // human input
                 SFinput_prompt = center(SFinput_prompt, 2.0f, 2.0f);
@@ -537,6 +556,9 @@ int main(void){
             if (mode == 1) {
                 for (int i=0; i<fails; i++) {
                     window.draw(gallow[i]);
+                }
+                if (fails >=5) {
+                    window.draw(head);
                 }
             }
 
