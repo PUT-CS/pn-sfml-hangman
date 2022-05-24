@@ -12,7 +12,7 @@
 #include "config.hpp"
 #include "fileops.hpp"
 #include "websearch.hpp"
-#include "gallows.hpp"
+// #include "gallows.hpp"
 
 #define MAX_LETTERS 16
 #define MIN_LETTERS 5
