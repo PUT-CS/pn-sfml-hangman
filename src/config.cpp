@@ -41,7 +41,6 @@ Config getConfig(){
 	file >> CONFIG.BROWSER;
 	file >> dump;
 	file >> CONFIG.SEARCH_ENGINE;
-
 	file.close();
 	return CONFIG;
 }

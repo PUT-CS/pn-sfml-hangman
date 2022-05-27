@@ -100,7 +100,7 @@ int isLetterAllowed(sf::Uint32 code){
     }
     else if (code == 0x105 || code == 0x107 || code == 0x119 ||
              code == 0x142 || code == 0x0F3 || code == 0x15B ||
-             code == 0x17A || code == 0x17C){ // pnly polish chars
+             code == 0x17A || code == 0x17C){ // only polish chars
         return 1;
     }
     else {

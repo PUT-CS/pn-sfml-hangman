@@ -23,13 +23,11 @@ std::string exec(const char* cmd) {
     }
     return result;
 }
-
 int getRandomNumMax(int max){
     int lower = 0;
     int num = (rand() % (max - lower + 1)) + lower;
     return num;
 }
-
 char* getRandomWord2(std::wstring filenamewstr){
     std::string filepath(filenamewstr.begin(), filenamewstr.end());
     filepath = "assets/wordlists/" + filepath;
@@ -98,11 +96,9 @@ void saveGame(std::wstring word, std::wstring word_hidden, std::wstring used, st
     std::string touchcommand = "touch ";
     touchcommand += path;
     system(touchcommand.c_str());
-
     if (used.size() == 0) { // the player has no fails - fill it with a period
         used = L".";
     }
-
     std::wofstream newsave(path);
     newsave << word << '\n';
     newsave << word_hidden << '\n';

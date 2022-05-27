@@ -3,6 +3,9 @@
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/System/Clock.hpp>
+#include <SFML/System/Sleep.hpp>
+#include <SFML/System/Time.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/ContextSettings.hpp>
 #include <SFML/Window/WindowStyle.hpp>
@@ -186,7 +189,7 @@ int main(void){
     SFkeybinds = applyStyle(SFkeybinds, font, 16, FontColor, CONFIG.FNT_MULTIPLIER);
     SFkeybinds.setString(
     "New game (CPU): CTRL+N\n"
-    "New game (HUM): CTRL+H\n"
+    "New game (PLR): CTRL+H\n"
     "Load Game:      CTRL+L\n"
     "Save Game:      CTRL+S\n"
     "Mute Sounds:    CTRL+Subtract\n"
@@ -554,14 +557,11 @@ int main(void){
                 window.draw(SFkeybinds);
             }
             if (mode == 1) {
-                for (int i=0; i<fails; i++) {
+                for (int i=0; i<fails; i++)
                     window.draw(gallow[i]);
-                }
-                if (fails >=5) {
+                if (fails >=5)
                     window.draw(head);
-                }
             }
-
             window.display();
         }
     }

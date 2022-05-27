@@ -3,9 +3,6 @@
 #include <string.h>
 
 void research(const char* word, Config CONFIG){
-// void research(std::wstring word, Config CONFIG){
-    // searching = 1;
-    // std::string wordstr(word.begin(), word.end());
     std::string wordstr(word, word+strlen(word));
     std::string browserstr(CONFIG.BROWSER.begin(), CONFIG.BROWSER.end());
     std::string enginestr(CONFIG.SEARCH_ENGINE.begin(), CONFIG.SEARCH_ENGINE.end());

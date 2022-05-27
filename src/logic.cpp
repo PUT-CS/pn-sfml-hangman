@@ -8,7 +8,6 @@ std::wstring hideWord(std::wstring word){
     }
     return word_hidden;
 }
-
 int playerHasWon(std::wstring word_hidden){
     for (int i=0; i<word_hidden.size(); i++) {
         if (word_hidden[i] == '_') {
@@ -17,7 +16,6 @@ int playerHasWon(std::wstring word_hidden){
     }
     return 1;
 }
-
 std::wstring fillWord(std::wstring word, std::wstring hidden_word, std::wstring letter){
     for (int i=0; i<word.size(); i++) {
         wchar_t spacecheck = hidden_word[i];
